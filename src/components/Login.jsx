@@ -11,65 +11,66 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     setError('')
-
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-
     if (error) setError(error.message)
     setLoading(false)
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#1a1a2e' }}>
+      <div className="w-full max-w-md">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500 rounded-2xl mb-4 shadow-lg shadow-green-500/20">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Lead Gen Jay</h1>
-          <p className="text-gray-400 mt-2 text-sm">Client Portal</p>
+        <div className="text-center mb-10">
+          <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: '#4a90d9', letterSpacing: '3px' }}>
+            Lead Gen Jay
+          </p>
+          <h1 className="text-4xl font-bold mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
+            Client Portal
+          </h1>
+          <p className="text-sm" style={{ color: '#a0a8b8' }}>Sign in to access your campaign dashboard</p>
         </div>
 
         {/* Card */}
-        <div className="bg-gray-800 rounded-2xl p-8 shadow-2xl border border-gray-700">
-          <h2 className="text-xl font-semibold text-white mb-6">Sign in to your account</h2>
-
+        <div style={{ background: '#16213e', border: '1px solid #2a2d4a', borderRadius: '16px', padding: '36px' }}>
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">
-                Email address
+              <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: '#a0a8b8', letterSpacing: '1px' }}>
+                Email Address
               </label>
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 placeholder="you@company.com"
                 required
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                style={{
+                  width: '100%', padding: '12px 16px', borderRadius: '10px',
+                  background: 'rgba(255,255,255,0.05)', border: '1px solid #2a2d4a',
+                  color: '#fff', fontSize: '14px', outline: 'none',
+                }}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">
+              <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: '#a0a8b8', letterSpacing: '1px' }}>
                 Password
               </label>
               <input
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                style={{
+                  width: '100%', padding: '12px 16px', borderRadius: '10px',
+                  background: 'rgba(255,255,255,0.05)', border: '1px solid #2a2d4a',
+                  color: '#fff', fontSize: '14px', outline: 'none',
+                }}
               />
             </div>
 
             {error && (
-              <div className="bg-red-900/40 border border-red-700 rounded-xl px-4 py-3 text-red-400 text-sm flex items-start gap-2">
-                <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
+              <div style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '10px', padding: '12px 16px', color: '#f87171', fontSize: '13px' }}>
                 {error}
               </div>
             )}
@@ -77,24 +78,19 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-green-500 hover:bg-green-400 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800 shadow-lg shadow-green-500/20"
+              style={{
+                width: '100%', padding: '13px', borderRadius: '10px', border: 'none',
+                background: '#4a90d9', color: '#fff', fontSize: '14px', fontWeight: 700,
+                cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1,
+                transition: 'background 0.2s',
+              }}
             >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Signing in...
-                </span>
-              ) : (
-                'Sign In'
-              )}
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
         </div>
 
-        <p className="text-center text-gray-600 text-xs mt-6">
+        <p className="text-center text-xs mt-6" style={{ color: '#353d60' }}>
           © 2026 Lead Gen Jay. All rights reserved.
         </p>
       </div>

@@ -1,56 +1,74 @@
+const STATUS_STYLE = {
+  Active:    { color: '#2ecc71', bg: 'rgba(46,204,113,0.12)' },
+  Completed: { color: '#4a90d9', bg: 'rgba(74,144,217,0.12)' },
+  Paused:    { color: '#fbbf24', bg: 'rgba(251,191,36,0.12)' },
+  Draft:     { color: '#a0a8b8', bg: 'rgba(160,168,184,0.1)' },
+}
+
 export default function CampaignTable({ campaigns }) {
+  if (!campaigns || campaigns.length === 0) return null
+
   return (
-    <div className="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden">
-      <div className="px-6 py-5 border-b border-gray-700">
-        <h2 className="text-lg font-semibold text-white">Campaign Analytics</h2>
-        <p className="text-sm text-gray-400 mt-0.5">Performance breakdown across all active campaigns</p>
+    <div style={{ background: '#16213e', border: '1px solid #2a2d4a', borderRadius: '16px', overflow: 'hidden' }}>
+      <div style={{ padding: '24px 28px', borderBottom: '1px solid #2a2d4a' }}>
+        <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '20px', fontWeight: 600, margin: 0, color: '#fff' }}>
+          Campaign Analytics
+        </h2>
+        <p style={{ color: '#a0a8b8', fontSize: '13px', marginTop: '4px', marginBottom: 0 }}>
+          Performance breakdown by campaign
+        </p>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px]">
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr className="border-b border-gray-700/70">
-              {['Campaign', 'Emails Sent', 'Opened', 'Replies', 'Open Rate', 'Reply Rate'].map((h, i) => (
-                <th
-                  key={h}
-                  className={`py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${i === 0 ? 'text-left px-6' : 'text-right px-5'}`}
-                >
+            <tr style={{ borderBottom: '1px solid #2a2d4a' }}>
+              {['Campaign', 'Status', 'Emails Sent', 'Replies', 'Open Rate', 'Reply Rate'].map((h, i) => (
+                <th key={h} style={{
+                  padding: '10px 14px',
+                  textAlign: i === 0 ? 'left' : 'right',
+                  fontSize: '11px', fontWeight: 600,
+                  textTransform: 'uppercase', letterSpacing: '1.2px',
+                  color: '#a0a8b8',
+                }}>
                   {h}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {campaigns.map((c, i) => (
-              <tr key={i} className="border-b border-gray-700/40 hover:bg-gray-700/20 transition-colors">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" />
-                    <span className="text-white text-sm font-medium">{c.name}</span>
-                  </div>
-                </td>
-                <td className="px-5 py-4 text-right text-gray-300 text-sm tabular-nums">
-                  {c.emailsSent.toLocaleString()}
-                </td>
-                <td className="px-5 py-4 text-right text-gray-300 text-sm tabular-nums">
-                  {c.emailsOpened.toLocaleString()}
-                </td>
-                <td className="px-5 py-4 text-right text-gray-300 text-sm tabular-nums">
-                  {c.replies}
-                </td>
-                <td className="px-5 py-4 text-right">
-                  <span className="text-blue-400 text-sm font-medium tabular-nums">{c.openRate}%</span>
-                </td>
-                <td className="px-5 py-4 text-right">
-                  <span className={`inline-flex items-center justify-center min-w-[52px] text-xs font-semibold px-2.5 py-1 rounded-full tabular-nums ${
-                    c.replyRate >= 3.0
-                      ? 'bg-green-500/15 text-green-400'
-                      : 'bg-yellow-500/15 text-yellow-400'
-                  }`}>
-                    {c.replyRate}%
-                  </span>
-                </td>
-              </tr>
-            ))}
+            {campaigns.map((c, i) => {
+              const st = STATUS_STYLE[c.status] || STATUS_STYLE.Draft
+              return (
+                <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  <td style={{ padding: '14px', color: '#fff', fontSize: '14px', fontWeight: 500 }}>
+                    {c.name}
+                  </td>
+                  <td style={{ padding: '14px', textAlign: 'right' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 700, padding: '3px 10px', borderRadius: '20px', background: st.bg, color: st.color }}>
+                      {c.status}
+                    </span>
+                  </td>
+                  <td style={{ padding: '14px', textAlign: 'right', color: '#a0a8b8', fontSize: '14px', fontVariantNumeric: 'tabular-nums' }}>
+                    {c.emailsSent.toLocaleString()}
+                  </td>
+                  <td style={{ padding: '14px', textAlign: 'right', color: '#a0a8b8', fontSize: '14px', fontVariantNumeric: 'tabular-nums' }}>
+                    {c.replies}
+                  </td>
+                  <td style={{ padding: '14px', textAlign: 'right', color: '#4a90d9', fontSize: '14px', fontWeight: 600 }}>
+                    {c.openRate}%
+                  </td>
+                  <td style={{ padding: '14px', textAlign: 'right' }}>
+                    <span style={{
+                      fontSize: '12px', fontWeight: 700, padding: '4px 10px', borderRadius: '8px',
+                      background: c.replyRate >= 1 ? 'rgba(46,204,113,0.12)' : 'rgba(251,191,36,0.12)',
+                      color: c.replyRate >= 1 ? '#2ecc71' : '#fbbf24',
+                    }}>
+                      {c.replyRate}%
+                    </span>
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { supabase } from './lib/supabase'
 import Login from './components/Login'
+import ClientSelector from './components/ClientSelector'
 import Dashboard from './components/Dashboard'
 
 function App() {
@@ -24,7 +25,7 @@ function App() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500" />
       </div>
     )
   }
@@ -34,15 +35,19 @@ function App() {
       <Routes>
         <Route
           path="/login"
-          element={!session ? <Login /> : <Navigate to="/dashboard" replace />}
+          element={!session ? <Login /> : <Navigate to="/clients" replace />}
         />
         <Route
-          path="/dashboard"
-          element={session ? <Dashboard session={session} /> : <Navigate to="/login" replace />}
+          path="/clients"
+          element={session ? <ClientSelector /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/dashboard/:clientId"
+          element={session ? <Dashboard /> : <Navigate to="/login" replace />}
         />
         <Route
           path="*"
-          element={<Navigate to={session ? '/dashboard' : '/login'} replace />}
+          element={<Navigate to={session ? '/clients' : '/login'} replace />}
         />
       </Routes>
     </BrowserRouter>

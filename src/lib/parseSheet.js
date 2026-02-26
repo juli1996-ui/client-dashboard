@@ -193,12 +193,13 @@ function calculateMetrics(rows) {
   const monthlyTrends = sortedYMs.map(ym => {
     const [year, monthStr] = ym.split('-')
     const mNum = parseInt(monthStr, 10)
-    // Show year suffix only if data spans multiple years
     const label = NUM_TO_LABEL[mNum] || ym
+    const daysInMonth = new Date(Number(year), mNum, 0).getDate()
     return {
       month: label,
       leads: byYM[ym],
       meetings: meetingsByYM[ym] || 0,
+      days: daysInMonth,
     }
   })
 
@@ -234,6 +235,7 @@ function calculateMetrics(rows) {
     summary: {
       totalLeads: total,
       leadsToday,
+      leadsPerDay: dailyRate > 0 ? Math.round(dailyRate * 10) / 10 : null,
       emailsSent: null,   // from Instantly, not in sheet
       responseRate: null, // from Instantly
       meetingsScheduled: meetingsTotal,
@@ -250,6 +252,10 @@ function calculateMetrics(rows) {
       leadsProjected: Math.max(leadsProjected, lastMonthLeads),
       meetingsActual: lastMonthMeetings,
       meetingsProjected,
+      elapsedDays,
+      daysInMonth: daysInLastMonth,
+      dailyRate,
+      prevMonthLeads: sortedYMs.length >= 2 ? (byYM[sortedYMs[sortedYMs.length - 2]] || 0) : 0,
     },
     campaigns: [],
   }

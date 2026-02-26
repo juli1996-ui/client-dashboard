@@ -43,6 +43,7 @@ export async function fetchCampaignAnalytics(apiKey) {
 
   return {
     emailsSent:    totals.sent,
+    replies:       totals.replied,
     openRate:      totals.sent > 0 ? +((totals.opened  / totals.sent) * 100).toFixed(1) : null,
     responseRate:  totals.sent > 0 ? +((totals.replied / totals.sent) * 100).toFixed(2) : null,
     opportunities: totals.opportunities,

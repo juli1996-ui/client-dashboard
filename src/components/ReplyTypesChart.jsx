@@ -1,66 +1,54 @@
-import {
-  PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
-} from 'recharts'
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 
-const RADIAN = Math.PI / 180
-
-function CustomLabel({ cx, cy, midAngle, innerRadius, outerRadius, percent }) {
-  if (percent < 0.06) return null
-  const r = innerRadius + (outerRadius - innerRadius) * 0.55
-  const x = cx + r * Math.cos(-midAngle * RADIAN)
-  const y = cy + r * Math.sin(-midAngle * RADIAN)
-  return (
-    <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={11} fontWeight={700}>
-      {`${(percent * 100).toFixed(0)}%`}
-    </text>
-  )
-}
+const COLORS = ['#4a90d9', '#a0a8b8', '#a78bfa', '#fbbf24']
 
 export default function ReplyTypesChart({ data }) {
   const total = data.reduce((s, d) => s + d.value, 0)
+  const coloredData = data.map((d, i) => ({ ...d, color: d.color || COLORS[i % COLORS.length] }))
 
   return (
-    <div className="bg-gray-800 rounded-2xl border border-gray-700 p-6">
-      <h2 className="text-lg font-semibold text-white">Types of Replies</h2>
-      <p className="text-sm text-gray-400 mt-0.5 mb-5">{total.toLocaleString()} total replies analyzed</p>
+    <div style={{ background: '#16213e', border: '1px solid #2a2d4a', borderRadius: '16px', padding: '28px' }}>
+      <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '20px', fontWeight: 600, color: '#fff', marginBottom: '6px' }}>
+        Lead Types
+      </h2>
+      <p style={{ color: '#a0a8b8', fontSize: '13px', marginBottom: '20px' }}>
+        How leads are responding to outreach
+      </p>
 
-      <ResponsiveContainer width="100%" height={280}>
+      <ResponsiveContainer width="100%" height={200}>
         <PieChart>
           <Pie
-            data={data}
+            data={coloredData}
             cx="50%"
             cy="50%"
-            innerRadius={65}
-            outerRadius={110}
+            innerRadius={60}
+            outerRadius={95}
             paddingAngle={3}
             dataKey="value"
             labelLine={false}
-            label={<CustomLabel />}
           >
-            {data.map((entry, i) => (
-              <Cell key={i} fill={entry.color} stroke="transparent" />
+            {coloredData.map((entry, i) => (
+              <Cell key={i} fill={entry.color} stroke="#16213e" strokeWidth={3} />
             ))}
           </Pie>
           <Tooltip
-            contentStyle={{
-              backgroundColor: '#1F2937',
-              border: '1px solid #374151',
-              borderRadius: '12px',
-              fontSize: '13px',
-            }}
+            contentStyle={{ background: '#1e2130', border: '1px solid #2a2d4a', borderRadius: '10px', fontSize: '13px' }}
             labelStyle={{ color: '#fff', fontWeight: 600 }}
-            itemStyle={{ color: '#9CA3AF' }}
-            formatter={(val, name) => [`${val} (${((val / total) * 100).toFixed(1)}%)`, name]}
-          />
-          <Legend
-            iconType="circle"
-            iconSize={8}
-            formatter={(val) => (
-              <span style={{ color: '#9CA3AF', fontSize: '13px' }}>{val}</span>
-            )}
+            formatter={(val, name) => [`${val} (${total > 0 ? ((val / total) * 100).toFixed(1) : 0}%)`, name]}
           />
         </PieChart>
       </ResponsiveContainer>
+
+      {/* External legend matching reference */}
+      <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {coloredData.map(item => (
+          <div key={item.name} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#a0a8b8' }}>
+            <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: item.color, flexShrink: 0 }} />
+            <span>{item.name}</span>
+            <span style={{ marginLeft: 'auto', fontWeight: 600, color: '#fff' }}>{item.value}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

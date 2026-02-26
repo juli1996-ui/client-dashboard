@@ -2,162 +2,334 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
+const AVATAR_COLORS = ['#4a90d9','#2ecc71','#a78bfa','#fbbf24','#2dd4bf','#f87171','#e67e22','#1abc9c']
+
+const EMPTY_FORM = { name: '', email: '', company_name: '', google_sheet_url: '', instantly_api_key: '' }
+
 export default function ClientSelector() {
-  const [clients, setClients] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
+  const [clients, setClients]     = useState([])
+  const [loading, setLoading]     = useState(true)
+  const [search, setSearch]       = useState('')
+  const [showModal, setShowModal] = useState(false)
+  const [form, setForm]           = useState(EMPTY_FORM)
+  const [saving, setSaving]       = useState(false)
+  const [formError, setFormError] = useState(null)
   const navigate = useNavigate()
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
+  const handleSignOut = async () => { await supabase.auth.signOut() }
+
+  const loadClients = () => {
+    supabase.from('clients').select('*').order('name')
+      .then(({ data }) => { if (data) setClients(data); setLoading(false) })
   }
 
-  useEffect(() => {
-    async function fetchClients() {
-      const { data, error } = await supabase
-        .from('clients')
-        .select('*')
-        .order('name')
-
-      if (!error && data) setClients(data)
-      setLoading(false)
-    }
-    fetchClients()
-  }, [])
+  useEffect(() => { loadClients() }, [])
 
   const filtered = clients.filter(c =>
     c.name?.toLowerCase().includes(search.toLowerCase()) ||
     c.company_name?.toLowerCase().includes(search.toLowerCase())
   )
 
-  const getInitials = (name) =>
-    name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?'
+  const initials = name => name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?'
 
-  const colors = [
-    'bg-green-500', 'bg-blue-500', 'bg-purple-500',
-    'bg-yellow-500', 'bg-pink-500', 'bg-indigo-500',
-    'bg-orange-500', 'bg-teal-500',
-  ]
+  const openModal  = () => { setForm(EMPTY_FORM); setFormError(null); setShowModal(true) }
+  const closeModal = () => { setShowModal(false); setFormError(null) }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!form.name.trim())  { setFormError('Client name is required.'); return }
+    if (!form.email.trim()) { setFormError('Email is required.'); return }
+    setSaving(true)
+    setFormError(null)
+
+    const { error } = await supabase.from('clients').insert({
+      name:              form.name.trim(),
+      email:             form.email.trim(),
+      company_name:      form.company_name.trim() || null,
+      google_sheet_url:  form.google_sheet_url.trim() || null,
+      instantly_api_key: form.instantly_api_key.trim() || null,
+    })
+
+    if (error) {
+      setFormError(error.message)
+      setSaving(false)
+      return
+    }
+
+    setSaving(false)
+    closeModal()
+    setLoading(true)
+    loadClients()
+  }
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div style={{ minHeight: '100vh', background: '#1a1a2e' }}>
       {/* Header */}
-      <header className="bg-gray-800 border-b border-gray-700 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center shadow shadow-green-500/20">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Lead Gen Jay</p>
-              <h1 className="text-base font-bold text-white leading-tight">Client Portal</h1>
-            </div>
+      <header style={{ background: '#16213e', borderBottom: '1px solid #2a2d4a', position: 'sticky', top: 0, zIndex: 10 }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <p style={{ color: '#4a90d9', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '3px', margin: '0 0 2px' }}>
+              Lead Gen Jay
+            </p>
+            <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '18px', fontWeight: 700, color: '#fff', margin: 0 }}>
+              Client Portal
+            </h1>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="flex items-center gap-1.5 px-3 py-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-xl transition text-sm font-medium"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            <span className="hidden sm:inline">Sign Out</span>
+          <button onClick={handleSignOut} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid #2a2d4a', borderRadius: '10px', padding: '8px 16px', color: '#a0a8b8', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+            Sign Out
           </button>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        {/* Title + Search */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 24px' }}>
+        {/* Title + Search + Add button */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '32px' }}>
           <div>
-            <h2 className="text-2xl font-bold text-white">All Clients</h2>
-            <p className="text-gray-400 text-sm mt-1">
-              {loading ? '...' : `${clients.length} client${clients.length !== 1 ? 's' : ''} total`}
+            <p style={{ color: '#4a90d9', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '3px', margin: '0 0 8px' }}>
+              Dashboard
+            </p>
+            <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '32px', fontWeight: 700, color: '#fff', margin: '0 0 4px' }}>
+              All Clients
+            </h2>
+            <p style={{ color: '#a0a8b8', fontSize: '14px', margin: 0 }}>
+              {loading ? '...' : `${clients.length} client${clients.length !== 1 ? 's' : ''}`}
             </p>
           </div>
-          <div className="relative">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search clients..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-9 pr-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent w-64 transition"
-            />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* Search */}
+            <div style={{ position: 'relative' }}>
+              <input
+                type="text"
+                placeholder="Search clients..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                style={{
+                  padding: '10px 16px 10px 36px', borderRadius: '10px',
+                  background: 'rgba(255,255,255,0.05)', border: '1px solid #2a2d4a',
+                  color: '#fff', fontSize: '13px', outline: 'none', width: '220px',
+                }}
+              />
+              <svg style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '14px', height: '14px', color: '#a0a8b8' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+
+            {/* Add Client button */}
+            <button
+              onClick={openModal}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '7px',
+                background: '#4a90d9', border: 'none', borderRadius: '10px',
+                padding: '10px 18px', color: '#fff',
+                fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                fontFamily: 'DM Sans, sans-serif',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              New Client
+            </button>
           </div>
         </div>
 
-        {/* Loading */}
         {loading && (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-500 mx-auto mb-3" />
-              <p className="text-gray-400 text-sm">Loading clients...</p>
-            </div>
+          <div style={{ textAlign: 'center', padding: '80px 0' }}>
+            <p style={{ color: '#a0a8b8' }}>Loading clients...</p>
           </div>
         )}
 
-        {/* Empty state */}
         {!loading && filtered.length === 0 && (
-          <div className="text-center py-20">
-            <div className="w-16 h-16 bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-gray-700">
-              <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-            <p className="text-gray-400 font-medium">
-              {search ? 'No clients match your search' : 'No clients yet'}
-            </p>
-            <p className="text-gray-600 text-sm mt-1">
-              {search ? 'Try a different search term' : 'Add clients in Supabase to see them here'}
-            </p>
+          <div style={{ textAlign: 'center', padding: '80px 0' }}>
+            <p style={{ color: '#a0a8b8', fontSize: '16px' }}>No clients found</p>
           </div>
         )}
 
-        {/* Client grid */}
         {!loading && filtered.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
             {filtered.map((client, i) => (
-              <button
-                key={client.id}
-                onClick={() => navigate(`/dashboard/${client.id}`)}
-                className="bg-gray-800 border border-gray-700 hover:border-green-500/50 rounded-2xl p-6 text-left transition-all group hover:shadow-lg hover:shadow-green-500/5 hover:-translate-y-0.5"
+              <button key={client.id} onClick={() => navigate(`/dashboard/${client.id}`)}
+                style={{
+                  background: '#16213e', border: '1px solid #2a2d4a', borderRadius: '16px',
+                  padding: '24px', textAlign: 'left', cursor: 'pointer',
+                  transition: 'border-color 0.2s, transform 0.2s',
+                  display: 'block', width: '100%',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#4a90d9'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2d4a'; e.currentTarget.style.transform = 'translateY(0)' }}
               >
-                {/* Avatar */}
-                <div className={`w-12 h-12 ${colors[i % colors.length]} rounded-xl flex items-center justify-center text-white font-bold text-lg mb-4 shadow-lg`}>
-                  {getInitials(client.name)}
+                <div style={{
+                  width: '48px', height: '48px', borderRadius: '12px', marginBottom: '16px',
+                  background: AVATAR_COLORS[i % AVATAR_COLORS.length],
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '18px', fontWeight: 700, color: '#fff',
+                }}>
+                  {initials(client.name)}
                 </div>
-
-                {/* Info */}
-                <h3 className="text-white font-semibold text-base group-hover:text-green-400 transition-colors truncate">
+                <p style={{ fontFamily: 'Playfair Display, serif', fontSize: '16px', fontWeight: 600, color: '#fff', margin: '0 0 4px' }}>
                   {client.name}
-                </h3>
+                </p>
                 {client.company_name && (
-                  <p className="text-gray-400 text-sm mt-0.5 truncate">{client.company_name}</p>
+                  <p style={{ color: '#a0a8b8', fontSize: '13px', margin: '0 0 16px' }}>{client.company_name}</p>
                 )}
-
-                {/* Sheet status */}
-                <div className="mt-4 flex items-center justify-between">
-                  <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${
-                    client.google_sheet_url
-                      ? 'bg-green-500/10 text-green-400'
-                      : 'bg-gray-700 text-gray-500'
-                  }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${client.google_sheet_url ? 'bg-green-400' : 'bg-gray-500'}`} />
-                    {client.google_sheet_url ? 'Sheet connected' : 'No sheet'}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{
+                    fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '20px',
+                    background: client.google_sheet_url ? 'rgba(46,204,113,0.12)' : 'rgba(160,168,184,0.1)',
+                    color: client.google_sheet_url ? '#2ecc71' : '#a0a8b8',
+                  }}>
+                    {client.google_sheet_url ? '● Sheet connected' : '○ No sheet'}
                   </span>
-                  <svg className="w-4 h-4 text-gray-600 group-hover:text-green-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  <span style={{ color: '#a0a8b8', fontSize: '18px' }}>→</span>
                 </div>
               </button>
             ))}
           </div>
         )}
       </main>
+
+      {/* ── Modal ── */}
+      {showModal && (
+        <div
+          onClick={e => { if (e.target === e.currentTarget) closeModal() }}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            background: 'rgba(10,12,25,0.85)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
+          }}
+        >
+          <div style={{
+            background: '#1c2340', border: '1px solid #353d60',
+            borderRadius: '18px', padding: '32px',
+            width: '100%', maxWidth: '480px', position: 'relative',
+            boxShadow: '0 28px 70px rgba(0,0,0,0.7)',
+          }}>
+            {/* Close */}
+            <button onClick={closeModal} style={{
+              position: 'absolute', top: '16px', right: '20px',
+              background: 'none', border: 'none', color: '#a0a8b8',
+              fontSize: '22px', cursor: 'pointer', lineHeight: 1,
+            }}>×</button>
+
+            <p style={{ color: '#4a90d9', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '3px', margin: '0 0 6px' }}>
+              New Client
+            </p>
+            <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', fontWeight: 700, color: '#fff', margin: '0 0 24px' }}>
+              Add Client
+            </h2>
+
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+              {/* Name */}
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#a0a8b8', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
+                  Client Name *
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Brian Rechtman"
+                  value={form.name}
+                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                  style={inputStyle}
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#a0a8b8', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  placeholder="e.g. brian@bluetree.com"
+                  value={form.email}
+                  onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                  style={inputStyle}
+                />
+              </div>
+
+              {/* Company */}
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#a0a8b8', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
+                  Company Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. BlueTree Marketing"
+                  value={form.company_name}
+                  onChange={e => setForm(f => ({ ...f, company_name: e.target.value }))}
+                  style={inputStyle}
+                />
+              </div>
+
+              {/* Google Sheet URL */}
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#a0a8b8', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
+                  Google Sheet URL
+                </label>
+                <input
+                  type="text"
+                  placeholder="https://docs.google.com/spreadsheets/d/..."
+                  value={form.google_sheet_url}
+                  onChange={e => setForm(f => ({ ...f, google_sheet_url: e.target.value }))}
+                  style={inputStyle}
+                />
+              </div>
+
+              {/* Instantly API Key */}
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#a0a8b8', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
+                  Instantly API Key
+                </label>
+                <input
+                  type="password"
+                  placeholder="Paste API key..."
+                  value={form.instantly_api_key}
+                  onChange={e => setForm(f => ({ ...f, instantly_api_key: e.target.value }))}
+                  style={inputStyle}
+                />
+              </div>
+
+              {/* Error */}
+              {formError && (
+                <p style={{ color: '#f87171', fontSize: '13px', margin: 0 }}>{formError}</p>
+              )}
+
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                <button type="button" onClick={closeModal} style={{
+                  flex: 1, padding: '12px',
+                  background: 'rgba(255,255,255,0.05)', border: '1px solid #2a2d4a',
+                  borderRadius: '10px', color: '#a0a8b8',
+                  fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+                  fontFamily: 'DM Sans, sans-serif',
+                }}>
+                  Cancel
+                </button>
+                <button type="submit" disabled={saving} style={{
+                  flex: 2, padding: '12px',
+                  background: saving ? '#2a2d4a' : '#4a90d9', border: 'none',
+                  borderRadius: '10px', color: saving ? '#a0a8b8' : '#fff',
+                  fontSize: '14px', fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer',
+                  fontFamily: 'DM Sans, sans-serif',
+                }}>
+                  {saving ? 'Saving...' : 'Add Client'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
+}
+
+const inputStyle = {
+  width: '100%', padding: '10px 14px',
+  background: 'rgba(255,255,255,0.05)', border: '1px solid #2a2d4a',
+  borderRadius: '10px', color: '#fff', fontSize: '13px',
+  outline: 'none', fontFamily: 'DM Sans, sans-serif',
+  boxSizing: 'border-box',
 }

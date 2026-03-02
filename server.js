@@ -21,8 +21,10 @@ app.use(
 app.use(express.static(join(__dirname, 'dist')))
 
 // SPA fallback — all routes serve index.html
-app.use((req, res) => {
-  res.sendFile(join(__dirname, 'dist', 'index.html'))
+app.use((req, res, next) => {
+  res.sendFile(join(__dirname, 'dist', 'index.html'), (err) => {
+    if (err) next(err)
+  })
 })
 
 app.listen(PORT, '0.0.0.0', () => {

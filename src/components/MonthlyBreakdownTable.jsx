@@ -1,9 +1,11 @@
 export default function MonthlyBreakdownTable({ monthlyTrends, projections }) {
   if (!monthlyTrends || monthlyTrends.length === 0) return null
 
-  const lastIdx = monthlyTrends.length - 1
-  const { elapsedDays, daysInMonth, dailyRate, leadsProjected } = projections || {}
+  const { elapsedDays, daysInMonth, dailyRate, leadsProjected, currentYM, currentMonthLabel } = projections || {}
   const daysLeft = daysInMonth && elapsedDays ? Math.max(0, daysInMonth - elapsedDays) : 0
+
+  // Is the current month already represented as a data row?
+  const currentMonthInData = currentYM && monthlyTrends.some(row => row.ym === currentYM)
 
   return (
     <div style={{ background: '#16213e', border: '1px solid #2a2d4a', borderRadius: '16px', padding: '28px' }}>
@@ -31,8 +33,9 @@ export default function MonthlyBreakdownTable({ monthlyTrends, projections }) {
           </thead>
           <tbody>
             {monthlyTrends.map((row, i) => {
-              const isLast   = i === lastIdx
-              const days     = isLast && elapsedDays ? elapsedDays : (row.days || 30)
+              const isCurrentMonth = row.ym === currentYM
+              // Use elapsed days for the in-progress current month; full days for past months
+              const days     = isCurrentMonth && elapsedDays ? elapsedDays : (row.days || 30)
               const rate     = (row.leads / days).toFixed(2)
               const prev     = i > 0 ? monthlyTrends[i - 1].leads : null
               const pctChg   = prev ? Math.round((row.leads - prev) / prev * 100) : null
@@ -46,9 +49,9 @@ export default function MonthlyBreakdownTable({ monthlyTrends, projections }) {
               }
 
               return (
-                <tr key={row.month} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', fontWeight: isRecent ? 600 : 400 }}>
+                <tr key={row.ym || row.month} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', fontWeight: isRecent ? 600 : 400 }}>
                   <td style={{ padding: '14px', color: '#fff' }}>
-                    {row.month}{isLast ? ' *' : ''}
+                    {row.month}{isCurrentMonth ? ' *' : ''}
                   </td>
                   <td style={{ padding: '14px', textAlign: 'right', color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
                     {row.leads}
@@ -63,11 +66,13 @@ export default function MonthlyBreakdownTable({ monthlyTrends, projections }) {
               )
             })}
 
-            {/* Projected row for current month */}
-            {daysLeft > 0 && leadsProjected && (
+            {/* Projected row: current month end-of-month estimate (only when days remain) */}
+            {daysLeft > 0 && leadsProjected > 0 && (
               <tr style={{ background: 'rgba(46,204,113,0.06)' }}>
                 <td style={{ padding: '14px', color: '#2ecc71', fontStyle: 'italic' }}>
-                  {monthlyTrends[lastIdx]?.month} projected
+                  {currentMonthInData
+                    ? `${currentMonthLabel} projected`
+                    : `${currentMonthLabel} *`}
                 </td>
                 <td style={{ padding: '14px', textAlign: 'right', color: '#2ecc71', fontStyle: 'italic', fontVariantNumeric: 'tabular-nums' }}>
                   {leadsProjected}

@@ -163,9 +163,17 @@ function parseCSV(text) {
 function calculateMetrics(rows) {
   const total = rows.length
 
+  // Current date info
+  const now = new Date()
+  const todayStr = now.toISOString().slice(0, 10)
+  const currentYear = now.getFullYear()
+  const currentMonth = now.getMonth() + 1
+  const currentYM = `${currentYear}-${String(currentMonth).padStart(2, '0')}`
+  const currentDayOfMonth = now.getDate()
+  const daysInCurrentMonth = new Date(currentYear, currentMonth, 0).getDate()
+
   // Leads today
-  const today = new Date().toISOString().slice(0, 10)
-  const leadsToday = rows.filter(r => r._date === today).length
+  const leadsToday = rows.filter(r => r._date === todayStr).length
 
   // Reply type counts
   const typeCounts = { Interested: 0, 'Meeting Request': 0, 'Forwarded Internally': 0, Other: 0 }
@@ -187,8 +195,8 @@ function calculateMetrics(rows) {
     }
   })
 
-  // Sort year-months chronologically
-  const sortedYMs = Object.keys(byYM).sort()
+  // Sort year-months chronologically, exclude future months (no data should appear beyond today)
+  const sortedYMs = Object.keys(byYM).sort().filter(ym => ym <= currentYM)
 
   const monthlyTrends = sortedYMs.map(ym => {
     const [year, monthStr] = ym.split('-')
@@ -196,6 +204,7 @@ function calculateMetrics(rows) {
     const label = NUM_TO_LABEL[mNum] || ym
     const daysInMonth = new Date(Number(year), mNum, 0).getDate()
     return {
+      ym,                        // year-month key for comparison in the component
       month: label,
       leads: byYM[ym],
       meetings: meetingsByYM[ym] || 0,
@@ -203,33 +212,47 @@ function calculateMetrics(rows) {
     }
   })
 
-  // Projections based on the most recent month
-  const lastYM = sortedYMs[sortedYMs.length - 1]
-  const lastMonthLeads = byYM[lastYM] || 0
-  const lastMonthMeetings = meetingsByYM[lastYM] || 0
+  // ── Projections always based on the ACTUAL current month ────────────────
 
-  // Elapsed days: use latest date in the last month
-  const lastMonthDates = rows
-    .filter(r => r._ym === lastYM && /^\d{4}-\d{2}-\d{2}$/.test(r._date))
-    .map(r => new Date(r._date))
+  // Leads so far in current month (0 if current month has no data yet)
+  const currentMonthLeads = byYM[currentYM] || 0
+  const currentMonthMeetings = meetingsByYM[currentYM] || 0
+  const currentMonthLabel = NUM_TO_LABEL[currentMonth]
 
-  const daysInLastMonth = (() => {
-    const [y, m] = lastYM.split('-').map(Number)
-    return new Date(y, m, 0).getDate()
-  })()
+  // Elapsed days = today's day-of-month; days left in current month
+  const elapsedDays = currentDayOfMonth
+  const daysLeft = Math.max(0, daysInCurrentMonth - elapsedDays)
 
-  let elapsedDays = daysInLastMonth
-  if (lastMonthDates.length > 0) {
-    elapsedDays = new Date(Math.max(...lastMonthDates)).getDate()
+  // Daily rate: use current month's own data if it has any,
+  // otherwise fall back to the most recent past month's rate
+  let dailyRate = 0
+  if (currentMonthLeads > 0) {
+    dailyRate = elapsedDays > 0 ? currentMonthLeads / elapsedDays : 0
+  } else {
+    const lastPastYM = sortedYMs.filter(ym => ym < currentYM).slice(-1)[0]
+    if (lastPastYM) {
+      const lastMonthLeads = byYM[lastPastYM] || 0
+      const [y, m] = lastPastYM.split('-').map(Number)
+      const daysInLastMonth = new Date(y, m, 0).getDate()
+      const lastMonthDates = rows
+        .filter(r => r._ym === lastPastYM && /^\d{4}-\d{2}-\d{2}$/.test(r._date))
+        .map(r => new Date(r._date))
+      const lastElapsedDays = lastMonthDates.length > 0
+        ? new Date(Math.max(...lastMonthDates)).getDate()
+        : daysInLastMonth
+      dailyRate = lastElapsedDays > 0 ? lastMonthLeads / lastElapsedDays : 0
+    }
   }
 
-  const dailyRate    = elapsedDays > 0 ? lastMonthLeads / elapsedDays : 0
-  const daysLeft     = Math.max(0, daysInLastMonth - elapsedDays)
-  const leadsProjected = Math.round(lastMonthLeads + dailyRate * daysLeft)
+  const leadsProjected = Math.round(currentMonthLeads + dailyRate * daysLeft)
   const meetingsProjected = Math.max(
-    lastMonthMeetings,
+    currentMonthMeetings,
     Math.round(leadsProjected * (meetingsTotal / total || 0.05))
   )
+
+  // Previous month = the most recent month before the current one
+  const prevYM = sortedYMs.filter(ym => ym < currentYM).slice(-1)[0]
+  const prevMonthLeads = prevYM ? (byYM[prevYM] || 0) : 0
 
   return {
     summary: {
@@ -248,14 +271,16 @@ function calculateMetrics(rows) {
     ].filter(t => t.value > 0),
     monthlyTrends,
     projections: {
-      leadsActual: lastMonthLeads,
-      leadsProjected: Math.max(leadsProjected, lastMonthLeads),
-      meetingsActual: lastMonthMeetings,
+      leadsActual: currentMonthLeads,
+      leadsProjected: Math.max(leadsProjected, currentMonthLeads),
+      meetingsActual: currentMonthMeetings,
       meetingsProjected,
       elapsedDays,
-      daysInMonth: daysInLastMonth,
+      daysInMonth: daysInCurrentMonth,
       dailyRate,
-      prevMonthLeads: sortedYMs.length >= 2 ? (byYM[sortedYMs[sortedYMs.length - 2]] || 0) : 0,
+      prevMonthLeads,
+      currentYM,
+      currentMonthLabel,
     },
     campaigns: [],
   }

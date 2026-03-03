@@ -1,19 +1,21 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseAdmin } from '../lib/supabase'
 
 const AVATAR_COLORS = ['#4a90d9','#2ecc71','#a78bfa','#fbbf24','#2dd4bf','#f87171','#e67e22','#1abc9c']
 
 const EMPTY_FORM = { name: '', email: '', company_name: '', google_sheet_url: '', instantly_api_key: '' }
 
 export default function ClientSelector() {
-  const [clients, setClients]     = useState([])
-  const [loading, setLoading]     = useState(true)
-  const [search, setSearch]       = useState('')
-  const [showModal, setShowModal] = useState(false)
-  const [form, setForm]           = useState(EMPTY_FORM)
-  const [saving, setSaving]       = useState(false)
-  const [formError, setFormError] = useState(null)
+  const [clients, setClients]         = useState([])
+  const [loading, setLoading]         = useState(true)
+  const [search, setSearch]           = useState('')
+  const [showModal, setShowModal]     = useState(false)
+  const [form, setForm]               = useState(EMPTY_FORM)
+  const [saving, setSaving]           = useState(false)
+  const [formError, setFormError]     = useState(null)
+  const [deleteConfirm, setDeleteConfirm] = useState(null) // client object to delete
+  const [deleting, setDeleting]       = useState(false)
   const navigate = useNavigate()
 
   const handleSignOut = async () => { await supabase.auth.signOut() }
@@ -60,6 +62,34 @@ export default function ClientSelector() {
     closeModal()
     setLoading(true)
     loadClients()
+  }
+
+  const handleDelete = async () => {
+    if (!deleteConfirm) return
+    setDeleting(true)
+
+    // 1. Delete row from clients table
+    const { error: dbError } = await supabase
+      .from('clients')
+      .delete()
+      .eq('id', deleteConfirm.id)
+
+    if (dbError) {
+      setDeleting(false)
+      alert(`Error deleting client: ${dbError.message}`)
+      return
+    }
+
+    // 2. Best-effort: delete the corresponding Supabase Auth user (needs service role key)
+    if (supabaseAdmin) {
+      await supabaseAdmin.auth.admin.deleteUser(deleteConfirm.id).catch(() => {
+        // Silently ignore — auth user may not exist or id may not match
+      })
+    }
+
+    setDeleting(false)
+    setDeleteConfirm(null)
+    setClients(prev => prev.filter(c => c.id !== deleteConfirm.id))
   }
 
   return (
@@ -149,47 +179,75 @@ export default function ClientSelector() {
         {!loading && filtered.length > 0 && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
             {filtered.map((client, i) => (
-              <button key={client.id} onClick={() => navigate(`/dashboard/${client.id}`)}
-                style={{
-                  background: '#16213e', border: '1px solid #2a2d4a', borderRadius: '16px',
-                  padding: '24px', textAlign: 'left', cursor: 'pointer',
-                  transition: 'border-color 0.2s, transform 0.2s',
-                  display: 'block', width: '100%',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = '#4a90d9'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2d4a'; e.currentTarget.style.transform = 'translateY(0)' }}
-              >
-                <div style={{
-                  width: '48px', height: '48px', borderRadius: '12px', marginBottom: '16px',
-                  background: AVATAR_COLORS[i % AVATAR_COLORS.length],
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '18px', fontWeight: 700, color: '#fff',
-                }}>
-                  {initials(client.name)}
-                </div>
-                <p style={{ fontFamily: 'Playfair Display, serif', fontSize: '16px', fontWeight: 600, color: '#fff', margin: '0 0 4px' }}>
-                  {client.name}
-                </p>
-                {client.company_name && (
-                  <p style={{ color: '#a0a8b8', fontSize: '13px', margin: '0 0 16px' }}>{client.company_name}</p>
-                )}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{
-                    fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '20px',
-                    background: client.google_sheet_url ? 'rgba(46,204,113,0.12)' : 'rgba(160,168,184,0.1)',
-                    color: client.google_sheet_url ? '#2ecc71' : '#a0a8b8',
+              <div key={client.id} style={{ position: 'relative' }}>
+                {/* Card — navigates to dashboard */}
+                <button
+                  onClick={() => navigate(`/dashboard/${client.id}`)}
+                  style={{
+                    background: '#16213e', border: '1px solid #2a2d4a', borderRadius: '16px',
+                    padding: '24px', textAlign: 'left', cursor: 'pointer',
+                    transition: 'border-color 0.2s, transform 0.2s',
+                    display: 'block', width: '100%',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#4a90d9'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2d4a'; e.currentTarget.style.transform = 'translateY(0)' }}
+                >
+                  <div style={{
+                    width: '48px', height: '48px', borderRadius: '12px', marginBottom: '16px',
+                    background: AVATAR_COLORS[i % AVATAR_COLORS.length],
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '18px', fontWeight: 700, color: '#fff',
                   }}>
-                    {client.google_sheet_url ? '● Sheet connected' : '○ No sheet'}
-                  </span>
-                  <span style={{ color: '#a0a8b8', fontSize: '18px' }}>→</span>
-                </div>
-              </button>
+                    {initials(client.name)}
+                  </div>
+                  <p style={{ fontFamily: 'Playfair Display, serif', fontSize: '16px', fontWeight: 600, color: '#fff', margin: '0 0 4px' }}>
+                    {client.name}
+                  </p>
+                  {client.company_name && (
+                    <p style={{ color: '#a0a8b8', fontSize: '13px', margin: '0 0 16px' }}>{client.company_name}</p>
+                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{
+                      fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '20px',
+                      background: client.google_sheet_url ? 'rgba(46,204,113,0.12)' : 'rgba(160,168,184,0.1)',
+                      color: client.google_sheet_url ? '#2ecc71' : '#a0a8b8',
+                    }}>
+                      {client.google_sheet_url ? '● Sheet connected' : '○ No sheet'}
+                    </span>
+                    <span style={{ color: '#a0a8b8', fontSize: '18px' }}>→</span>
+                  </div>
+                </button>
+
+                {/* Delete button — positioned top-right of card */}
+                <button
+                  onClick={e => { e.stopPropagation(); setDeleteConfirm(client) }}
+                  title="Delete client"
+                  style={{
+                    position: 'absolute', top: '12px', right: '12px',
+                    background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)',
+                    borderRadius: '8px', width: '30px', height: '30px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', color: '#f87171',
+                    transition: 'background 0.15s, border-color 0.15s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.22)'; e.currentTarget.style.borderColor = '#f87171' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.1)'; e.currentTarget.style.borderColor = 'rgba(248,113,113,0.25)' }}
+                >
+                  {/* Trash icon */}
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                    <path d="M10 11v6M14 11v6"/>
+                    <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                  </svg>
+                </button>
+              </div>
             ))}
           </div>
         )}
       </main>
 
-      {/* ── Modal ── */}
+      {/* ── Add Client Modal ── */}
       {showModal && (
         <div
           onClick={e => { if (e.target === e.currentTarget) closeModal() }}
@@ -206,7 +264,6 @@ export default function ClientSelector() {
             width: '100%', maxWidth: '480px', position: 'relative',
             boxShadow: '0 28px 70px rgba(0,0,0,0.7)',
           }}>
-            {/* Close */}
             <button onClick={closeModal} style={{
               position: 'absolute', top: '16px', right: '20px',
               background: 'none', border: 'none', color: '#a0a8b8',
@@ -221,100 +278,37 @@ export default function ClientSelector() {
             </h2>
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
-              {/* Name */}
               <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#a0a8b8', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
-                  Client Name *
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Brian Rechtman"
-                  value={form.name}
-                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                  style={inputStyle}
-                />
+                <label style={labelStyle}>Client Name *</label>
+                <input type="text" placeholder="e.g. Brian Rechtman" value={form.name}
+                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))} style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>Email *</label>
+                <input type="email" placeholder="e.g. brian@bluetree.com" value={form.email}
+                  onChange={e => setForm(f => ({ ...f, email: e.target.value }))} style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>Company Name</label>
+                <input type="text" placeholder="e.g. BlueTree Marketing" value={form.company_name}
+                  onChange={e => setForm(f => ({ ...f, company_name: e.target.value }))} style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>Google Sheet URL</label>
+                <input type="text" placeholder="https://docs.google.com/spreadsheets/d/..." value={form.google_sheet_url}
+                  onChange={e => setForm(f => ({ ...f, google_sheet_url: e.target.value }))} style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>Instantly API Key</label>
+                <input type="password" placeholder="Paste API key..." value={form.instantly_api_key}
+                  onChange={e => setForm(f => ({ ...f, instantly_api_key: e.target.value }))} style={inputStyle} />
               </div>
 
-              {/* Email */}
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#a0a8b8', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
-                  Email *
-                </label>
-                <input
-                  type="email"
-                  placeholder="e.g. brian@bluetree.com"
-                  value={form.email}
-                  onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                  style={inputStyle}
-                />
-              </div>
+              {formError && <p style={{ color: '#f87171', fontSize: '13px', margin: 0 }}>{formError}</p>}
 
-              {/* Company */}
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#a0a8b8', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
-                  Company Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. BlueTree Marketing"
-                  value={form.company_name}
-                  onChange={e => setForm(f => ({ ...f, company_name: e.target.value }))}
-                  style={inputStyle}
-                />
-              </div>
-
-              {/* Google Sheet URL */}
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#a0a8b8', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
-                  Google Sheet URL
-                </label>
-                <input
-                  type="text"
-                  placeholder="https://docs.google.com/spreadsheets/d/..."
-                  value={form.google_sheet_url}
-                  onChange={e => setForm(f => ({ ...f, google_sheet_url: e.target.value }))}
-                  style={inputStyle}
-                />
-              </div>
-
-              {/* Instantly API Key */}
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#a0a8b8', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
-                  Instantly API Key
-                </label>
-                <input
-                  type="password"
-                  placeholder="Paste API key..."
-                  value={form.instantly_api_key}
-                  onChange={e => setForm(f => ({ ...f, instantly_api_key: e.target.value }))}
-                  style={inputStyle}
-                />
-              </div>
-
-              {/* Error */}
-              {formError && (
-                <p style={{ color: '#f87171', fontSize: '13px', margin: 0 }}>{formError}</p>
-              )}
-
-              {/* Actions */}
               <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
-                <button type="button" onClick={closeModal} style={{
-                  flex: 1, padding: '12px',
-                  background: 'rgba(255,255,255,0.05)', border: '1px solid #2a2d4a',
-                  borderRadius: '10px', color: '#a0a8b8',
-                  fontSize: '14px', fontWeight: 600, cursor: 'pointer',
-                  fontFamily: 'DM Sans, sans-serif',
-                }}>
-                  Cancel
-                </button>
-                <button type="submit" disabled={saving} style={{
-                  flex: 2, padding: '12px',
-                  background: saving ? '#2a2d4a' : '#4a90d9', border: 'none',
-                  borderRadius: '10px', color: saving ? '#a0a8b8' : '#fff',
-                  fontSize: '14px', fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer',
-                  fontFamily: 'DM Sans, sans-serif',
-                }}>
+                <button type="button" onClick={closeModal} style={cancelBtnStyle}>Cancel</button>
+                <button type="submit" disabled={saving} style={{ ...submitBtnStyle, background: saving ? '#2a2d4a' : '#4a90d9', color: saving ? '#a0a8b8' : '#fff', cursor: saving ? 'not-allowed' : 'pointer' }}>
                   {saving ? 'Saving...' : 'Add Client'}
                 </button>
               </div>
@@ -322,8 +316,80 @@ export default function ClientSelector() {
           </div>
         </div>
       )}
+
+      {/* ── Delete Confirmation Modal ── */}
+      {deleteConfirm && (
+        <div
+          onClick={e => { if (e.target === e.currentTarget && !deleting) setDeleteConfirm(null) }}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            background: 'rgba(10,12,25,0.85)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
+          }}
+        >
+          <div style={{
+            background: '#1c2340', border: '1px solid rgba(248,113,113,0.3)',
+            borderRadius: '18px', padding: '32px',
+            width: '100%', maxWidth: '420px',
+            boxShadow: '0 28px 70px rgba(0,0,0,0.7)',
+          }}>
+            {/* Icon */}
+            <div style={{
+              width: '48px', height: '48px', borderRadius: '12px', marginBottom: '20px',
+              background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                <path d="M10 11v6M14 11v6"/>
+                <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+              </svg>
+            </div>
+
+            <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '20px', fontWeight: 700, color: '#fff', margin: '0 0 10px' }}>
+              Delete Client
+            </h2>
+            <p style={{ color: '#a0a8b8', fontSize: '14px', lineHeight: 1.6, margin: '0 0 24px' }}>
+              Are you sure you want to delete{' '}
+              <strong style={{ color: '#fff' }}>{deleteConfirm.name}</strong>?{' '}
+              This action cannot be undone.
+            </p>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                disabled={deleting}
+                style={{ ...cancelBtnStyle, flex: 1, cursor: deleting ? 'not-allowed' : 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                style={{
+                  flex: 2, padding: '12px',
+                  background: deleting ? '#2a2d4a' : '#ef4444', border: 'none',
+                  borderRadius: '10px', color: deleting ? '#a0a8b8' : '#fff',
+                  fontSize: '14px', fontWeight: 600,
+                  cursor: deleting ? 'not-allowed' : 'pointer',
+                  fontFamily: 'DM Sans, sans-serif',
+                }}
+              >
+                {deleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
+}
+
+const labelStyle = {
+  display: 'block', fontSize: '11px', fontWeight: 600, color: '#a0a8b8',
+  textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px',
 }
 
 const inputStyle = {
@@ -332,4 +398,18 @@ const inputStyle = {
   borderRadius: '10px', color: '#fff', fontSize: '13px',
   outline: 'none', fontFamily: 'DM Sans, sans-serif',
   boxSizing: 'border-box',
+}
+
+const cancelBtnStyle = {
+  flex: 1, padding: '12px',
+  background: 'rgba(255,255,255,0.05)', border: '1px solid #2a2d4a',
+  borderRadius: '10px', color: '#a0a8b8',
+  fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+  fontFamily: 'DM Sans, sans-serif',
+}
+
+const submitBtnStyle = {
+  flex: 2, padding: '12px', border: 'none',
+  borderRadius: '10px', fontSize: '14px', fontWeight: 600,
+  fontFamily: 'DM Sans, sans-serif',
 }

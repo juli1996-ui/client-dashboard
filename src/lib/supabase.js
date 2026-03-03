@@ -1,6 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseUrl     = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const serviceRoleKey  = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// Admin client — only available when VITE_SUPABASE_SERVICE_ROLE_KEY is set.
+// Used exclusively for auth.admin operations (e.g. deleting a user from Auth).
+export const supabaseAdmin = serviceRoleKey
+  ? createClient(supabaseUrl, serviceRoleKey, { auth: { autoRefreshToken: false, persistSession: false } })
+  : null

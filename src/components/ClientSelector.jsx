@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase, supabaseAdmin } from '../lib/supabase'
 
@@ -14,9 +14,23 @@ export default function ClientSelector() {
   const [form, setForm]               = useState(EMPTY_FORM)
   const [saving, setSaving]           = useState(false)
   const [formError, setFormError]     = useState(null)
-  const [deleteConfirm, setDeleteConfirm] = useState(null) // client object to delete
+  const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [deleting, setDeleting]       = useState(false)
+  const [openMenuId, setOpenMenuId]   = useState(null) // id of card whose menu is open
+  const menuRef = useRef(null)
   const navigate = useNavigate()
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!openMenuId) return
+    const handler = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setOpenMenuId(null)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [openMenuId])
 
   const handleSignOut = async () => { await supabase.auth.signOut() }
 
@@ -218,29 +232,73 @@ export default function ClientSelector() {
                   </div>
                 </button>
 
-                {/* Delete button — positioned top-right of card */}
-                <button
-                  onClick={e => { e.stopPropagation(); setDeleteConfirm(client) }}
-                  title="Delete client"
-                  style={{
-                    position: 'absolute', top: '12px', right: '12px',
-                    background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)',
-                    borderRadius: '8px', width: '30px', height: '30px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', color: '#f87171',
-                    transition: 'background 0.15s, border-color 0.15s',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.22)'; e.currentTarget.style.borderColor = '#f87171' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.1)'; e.currentTarget.style.borderColor = 'rgba(248,113,113,0.25)' }}
+                {/* Three-dot menu button — positioned top-right of card */}
+                <div
+                  ref={openMenuId === client.id ? menuRef : null}
+                  style={{ position: 'absolute', top: '12px', right: '12px' }}
                 >
-                  {/* Trash icon */}
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="3 6 5 6 21 6"/>
-                    <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-                    <path d="M10 11v6M14 11v6"/>
-                    <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-                  </svg>
-                </button>
+                  <button
+                    onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId === client.id ? null : client.id) }}
+                    title="Options"
+                    style={{
+                      background: 'none', border: 'none',
+                      borderRadius: '8px', width: '28px', height: '28px',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer', color: '#a0a8b8',
+                      transition: 'background 0.15s, color 0.15s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#fff' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#a0a8b8' }}
+                  >
+                    {/* Three vertical dots */}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="12" cy="5"  r="2"/>
+                      <circle cx="12" cy="12" r="2"/>
+                      <circle cx="12" cy="19" r="2"/>
+                    </svg>
+                  </button>
+
+                  {/* Dropdown menu */}
+                  {openMenuId === client.id && (
+                    <div style={{
+                      position: 'absolute', top: '34px', right: 0,
+                      background: '#1c2340', border: '1px solid #353d60',
+                      borderRadius: '10px', minWidth: '140px',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                      overflow: 'hidden', zIndex: 50,
+                    }}>
+                      <button
+                        onClick={e => { e.stopPropagation(); setOpenMenuId(null) }}
+                        style={{
+                          display: 'block', width: '100%', textAlign: 'left',
+                          padding: '10px 16px', background: 'none', border: 'none',
+                          color: '#a0a8b8', fontSize: '13px', fontWeight: 500,
+                          cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+                          transition: 'background 0.12s, color 0.12s',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#fff' }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#a0a8b8' }}
+                      >
+                        Edit
+                      </button>
+                      <div style={{ height: '1px', background: '#2a2d4a', margin: '0 10px' }} />
+                      <button
+                        onClick={e => { e.stopPropagation(); setOpenMenuId(null); setDeleteConfirm(client) }}
+                        style={{
+                          display: 'block', width: '100%', textAlign: 'left',
+                          padding: '10px 16px', background: 'none', border: 'none',
+                          color: '#f87171', fontSize: '13px', fontWeight: 500,
+                          cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+                          transition: 'background 0.12s',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.1)' }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>

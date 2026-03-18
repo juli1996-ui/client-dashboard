@@ -257,15 +257,28 @@ function calculateMetrics(rows) {
   const currentMonthMeetings = meetingsByYM[currentYM] || 0
   const currentMonthLabel = NUM_TO_LABEL[currentMonth]
 
-  // Elapsed days = today's day-of-month; days left in current month
+  // Find the last activity date in the current month to detect campaign pauses
+  const currentMonthDates = rows
+    .filter(r => r._ym === currentYM)
+    .map(r => {
+      const d = parseDate(r._date)
+      return d ? parseInt(d.day, 10) : 0
+    })
+    .filter(d => d > 0)
+  const lastActiveDay = currentMonthDates.length > 0 ? Math.max(...currentMonthDates) : 0
+
+  // If last activity was more than 7 days ago, campaign likely paused/ended — use active days for rate
+  const campaignPaused = lastActiveDay > 0 && (currentDayOfMonth - lastActiveDay) > 7
+  const activeDays = campaignPaused ? lastActiveDay : currentDayOfMonth
+
+  // Elapsed days = active campaign days; days left in current month
   const elapsedDays = currentDayOfMonth
   const daysLeft = Math.max(0, daysInCurrentMonth - elapsedDays)
 
-  // Daily rate: use current month's own data if it has any,
-  // otherwise fall back to the most recent past month's rate
+  // Daily rate: use active days (not calendar days) for accurate pace calculation
   let dailyRate = 0
   if (currentMonthLeads > 0) {
-    dailyRate = elapsedDays > 0 ? currentMonthLeads / elapsedDays : 0
+    dailyRate = activeDays > 0 ? currentMonthLeads / activeDays : 0
   } else {
     const lastPastYM = sortedYMs.filter(ym => ym < currentYM).slice(-1)[0]
     if (lastPastYM) {
@@ -273,15 +286,18 @@ function calculateMetrics(rows) {
       const [y, m] = lastPastYM.split('-').map(Number)
       const daysInLastMonth = new Date(y, m, 0).getDate()
       const lastMonthDates = rows
-        .filter(r => r._ym === lastPastYM && /^\d{4}-\d{2}-\d{2}$/.test(r._date))
-        .map(r => new Date(r._date))
+        .filter(r => r._ym === lastPastYM)
+        .map(r => { const d = parseDate(r._date); return d ? parseInt(d.day, 10) : 0 })
+        .filter(d => d > 0)
       const lastElapsedDays = lastMonthDates.length > 0
-        ? new Date(Math.max(...lastMonthDates)).getDate()
+        ? Math.max(...lastMonthDates)
         : daysInLastMonth
       dailyRate = lastElapsedDays > 0 ? lastMonthLeads / lastElapsedDays : 0
     }
   }
 
+  // "What if campaign continued" projection for full month at the active daily rate
+  const leadsIfFullMonth = Math.round(dailyRate * daysInCurrentMonth)
   const leadsProjected = Math.round(currentMonthLeads + dailyRate * daysLeft)
   const meetingsProjected = Math.max(
     currentMonthMeetings,
@@ -340,9 +356,13 @@ function calculateMetrics(rows) {
     projections: {
       leadsActual: currentMonthLeads,
       leadsProjected: Math.max(leadsProjected, currentMonthLeads),
+      leadsIfFullMonth,
       meetingsActual: currentMonthMeetings,
       meetingsProjected,
       elapsedDays,
+      activeDays,
+      campaignPaused,
+      lastActiveDay,
       daysInMonth: daysInCurrentMonth,
       dailyRate,
       prevMonthLeads,

@@ -197,7 +197,11 @@ export default function Dashboard() {
         )}
 
         {/* Main content */}
-        {data && !loadingSheet && (
+        {data && !loadingSheet && (() => {
+          const daysInactive = data.projections?.campaignPaused
+            ? new Date().getDate() - (data.projections.lastActiveDay || 0)
+            : 0
+          return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
             {/* 0. Growth Banner */}
@@ -207,6 +211,64 @@ export default function Dashboard() {
                   Campaign Performance
                 </p>
                 <GrowthBanner growth={data.growth} projections={data.projections} />
+              </section>
+            )}
+
+            {/* 0b. Campaign Paused — missed opportunity banner */}
+            {data.projections?.campaignPaused && (
+              <section>
+                <div style={{
+                  background: 'linear-gradient(135deg, rgba(251,191,36,0.08) 0%, rgba(248,113,113,0.06) 100%)',
+                  border: '1px solid rgba(251,191,36,0.25)',
+                  borderRadius: '16px', padding: '24px 28px',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+                    <div style={{
+                      width: '44px', height: '44px', borderRadius: '12px', flexShrink: 0,
+                      background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.25)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '20px',
+                    }}>
+                      ⚡
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '18px', fontWeight: 700, color: '#fbbf24', margin: '0 0 8px' }}>
+                        Untapped Potential — Campaign Contacts Exhausted
+                      </h3>
+                      <p style={{ color: '#a0a8b8', fontSize: '14px', lineHeight: 1.7, margin: '0 0 16px' }}>
+                        The campaign ran out of contacts on <strong style={{ color: '#fff' }}>March {data.projections.lastActiveDay}</strong>, generating
+                        {' '}<strong style={{ color: '#fff' }}>{data.projections.leadsActual} leads in just {data.projections.activeDays} days</strong> ({data.projections.dailyRate.toFixed(2)} leads/day).
+                        {' '}At this pace, a full month would have produced <strong style={{ color: '#2ecc71' }}>~{data.projections.leadsIfFullMonth} leads</strong>.
+                      </p>
+                      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                        <div style={{ padding: '12px 18px', background: 'rgba(46,204,113,0.08)', border: '1px solid rgba(46,204,113,0.2)', borderRadius: '10px', textAlign: 'center' }}>
+                          <p style={{ fontFamily: 'Playfair Display, serif', fontSize: '24px', fontWeight: 700, color: '#2ecc71', margin: '0 0 2px' }}>
+                            ~{data.projections.leadsIfFullMonth}
+                          </p>
+                          <p style={{ color: '#a0a8b8', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', margin: 0 }}>
+                            Full Month Potential
+                          </p>
+                        </div>
+                        <div style={{ padding: '12px 18px', background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)', borderRadius: '10px', textAlign: 'center' }}>
+                          <p style={{ fontFamily: 'Playfair Display, serif', fontSize: '24px', fontWeight: 700, color: '#fbbf24', margin: '0 0 2px' }}>
+                            {data.projections.dailyRate.toFixed(2)}/day
+                          </p>
+                          <p style={{ color: '#a0a8b8', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', margin: 0 }}>
+                            Active Pace
+                          </p>
+                        </div>
+                        <div style={{ padding: '12px 18px', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: '10px', textAlign: 'center' }}>
+                          <p style={{ fontFamily: 'Playfair Display, serif', fontSize: '24px', fontWeight: 700, color: '#f87171', margin: '0 0 2px' }}>
+                            {daysInactive} days
+                          </p>
+                          <p style={{ color: '#a0a8b8', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', margin: 0 }}>
+                            Inactive
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </section>
             )}
 
@@ -281,7 +343,8 @@ export default function Dashboard() {
             )}
 
           </div>
-        )}
+          )
+        })()}
 
         <footer style={{ textAlign: 'center', color: '#353d60', fontSize: '12px', paddingTop: '32px', paddingBottom: '16px' }}>
           Lead Gen Jay Client Portal — {data ? 'Live Google Sheets data' : 'Connect a sheet to see live data'}

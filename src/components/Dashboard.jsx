@@ -4,10 +4,13 @@ import { supabase } from '../lib/supabase'
 import { fetchSheetData } from '../lib/parseSheet'
 import { fetchCampaignAnalytics, fetchCampaigns } from '../lib/instantly'
 import SummaryCards from './SummaryCards'
+import GrowthBanner from './GrowthBanner'
 import CampaignFunnel from './CampaignFunnel'
 import MonthlyTrendsChart from './MonthlyTrendsChart'
+import CumulativeChart from './CumulativeChart'
 import MonthlyBreakdownTable from './MonthlyBreakdownTable'
 import ReplyTypesChart from './ReplyTypesChart'
+import LeadQualityBreakdown from './LeadQualityBreakdown'
 import MarchForecast from './MarchForecast'
 import PipelineHealth from './PipelineHealth'
 import ProjectionsChart from './ProjectionsChart'
@@ -197,6 +200,16 @@ export default function Dashboard() {
         {data && !loadingSheet && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
+            {/* 0. Growth Banner */}
+            {data.growth && data.growth.growthPct > 0 && (
+              <section>
+                <p style={{ color: '#2ecc71', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '3px', margin: '0 0 16px' }}>
+                  Campaign Performance
+                </p>
+                <GrowthBanner growth={data.growth} projections={data.projections} />
+              </section>
+            )}
+
             {/* 1. KPI Cards */}
             <section>
               <p style={{ color: '#4a90d9', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '3px', margin: '0 0 16px' }}>
@@ -219,6 +232,13 @@ export default function Dashboard() {
               </section>
             )}
 
+            {/* 3b. Cumulative Growth chart (full width) */}
+            {data.monthlyTrends.length > 1 && (
+              <section>
+                <CumulativeChart data={data.monthlyTrends} />
+              </section>
+            )}
+
             {/* 4. Two-column: Monthly Breakdown table + Lead Types donut */}
             {(data.monthlyTrends.length > 0 || data.replyTypes.length > 0) && (
               <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
@@ -229,6 +249,13 @@ export default function Dashboard() {
                   />
                 )}
                 {data.replyTypes.length > 0 && <ReplyTypesChart data={data.replyTypes} />}
+              </section>
+            )}
+
+            {/* 4b. Lead Quality Breakdown (full width) */}
+            {data.replyTypes.length > 0 && (
+              <section>
+                <LeadQualityBreakdown replyTypes={data.replyTypes} totalLeads={data.summary.totalLeads} />
               </section>
             )}
 

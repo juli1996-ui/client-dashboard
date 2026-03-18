@@ -1,11 +1,16 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 export default function MonthlyTrendsChart({ data }) {
-  const chartData = data.map(row => ({
-    month: row.month,
-    leads: row.leads,
-    leadsPerDay: row.days ? +((row.leads / row.days).toFixed(2)) : null,
-  }))
+  const chartData = data.map((row, i) => {
+    const prev = i > 0 ? data[i - 1].leads : null
+    const growthPct = prev ? Math.round(((row.leads - prev) / prev) * 100) : null
+    return {
+      month: row.month,
+      leads: row.leads,
+      leadsPerDay: row.days ? +((row.leads / row.days).toFixed(2)) : null,
+      growthLabel: growthPct !== null ? (growthPct > 0 ? `+${growthPct}%` : `${growthPct}%`) : '',
+    }
+  })
 
   return (
     <div style={{ background: '#16213e', border: '1px solid #2a2d4a', borderRadius: '16px', padding: '28px' }}>
@@ -57,6 +62,16 @@ export default function MonthlyTrendsChart({ data }) {
             strokeWidth={3}
             dot={{ fill: '#4a90d9', r: 5, strokeWidth: 0 }}
             activeDot={{ r: 7, fill: '#fff', stroke: '#4a90d9', strokeWidth: 2 }}
+            label={({ x, y, index }) => {
+              const label = chartData[index]?.growthLabel
+              if (!label) return null
+              const color = label.startsWith('+') ? '#2ecc71' : '#f87171'
+              return (
+                <text x={x} y={y - 14} textAnchor="middle" fill={color} fontSize={11} fontWeight={700}>
+                  {label}
+                </text>
+              )
+            }}
           />
 
           <Line

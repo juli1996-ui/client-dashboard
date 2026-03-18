@@ -1,9 +1,11 @@
 export default function SummaryCards({ data, projections }) {
   const leadsPerDay = data.leadsPerDay
-  const marchConservative = leadsPerDay ? Math.round(leadsPerDay * 31) : null
-  const marchOptimistic   = marchConservative ? Math.round(marchConservative * 1.35) : null
-  const marchRange = marchConservative
-    ? `${marchConservative}–${marchOptimistic}`
+  const monthLabel = projections?.currentMonthLabel || 'This Month'
+  const daysInMonth = projections?.daysInMonth || 31
+  const conservative = leadsPerDay ? Math.round(leadsPerDay * daysInMonth) : null
+  const optimistic   = conservative ? Math.round(conservative * 1.35) : null
+  const forecastRange = conservative
+    ? `${conservative}–${optimistic}`
     : '—'
 
   const cards = [
@@ -35,8 +37,8 @@ export default function SummaryCards({ data, projections }) {
       gradTop: 'linear-gradient(90deg,#fbbf24,#ffe066)',
     },
     {
-      value: marchRange,
-      label: 'March Forecast',
+      value: forecastRange,
+      label: `${monthLabel} Forecast`,
       badge: 'At current pace',
       colorClass: 'purple',
       color: '#a78bfa',

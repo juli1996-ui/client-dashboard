@@ -2,7 +2,8 @@ export default function MarchForecast({ summary, projections }) {
   const leadsPerDay = summary?.leadsPerDay
   if (!leadsPerDay || !projections) return null
 
-  const { leadsProjected, prevMonthLeads } = projections
+  const { leadsProjected, prevMonthLeads, currentMonthLabel } = projections
+  const monthLabel = currentMonthLabel || 'This Month'
 
   const conservative = Math.round(leadsPerDay * 31)
   const baseline     = prevMonthLeads ? Math.round((prevMonthLeads + leadsProjected) / 2) : conservative
@@ -20,7 +21,7 @@ export default function MarchForecast({ summary, projections }) {
   return (
     <div style={{ background: '#16213e', border: '1px solid #2a2d4a', borderRadius: '16px', padding: '32px' }}>
       <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '20px', fontWeight: 600, color: '#fff', marginBottom: '6px' }}>
-        March 2026 Forecast
+        {monthLabel} 2026 Forecast
       </h2>
       <p style={{ color: '#a0a8b8', fontSize: '13px', marginBottom: '24px' }}>
         At {leadsPerDay.toFixed(2)} leads/day — projected range across 3 scenarios

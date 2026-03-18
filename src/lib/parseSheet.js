@@ -188,6 +188,7 @@ function parseCSV(text) {
       _ym:   ym,                         // "2025-08"
       _date: dateStr,
       _type: normalizeType(rawType),
+      _rawType: rawType || 'Other',
       _monthName: monthName,
     })
   }
@@ -291,6 +292,26 @@ function calculateMetrics(rows) {
   const prevYM = sortedYMs.filter(ym => ym < currentYM).slice(-1)[0]
   const prevMonthLeads = prevYM ? (byYM[prevYM] || 0) : 0
 
+  // ── Growth metrics ────────────────────────────────────────
+  const firstMonthLeads = monthlyTrends.length > 0 ? monthlyTrends[0].leads : 0
+  const peakMonthLeads  = monthlyTrends.length > 0 ? Math.max(...monthlyTrends.map(m => m.leads)) : 0
+  const peakMonth       = monthlyTrends.find(m => m.leads === peakMonthLeads)
+  const growthPct       = firstMonthLeads > 0 ? Math.round(((peakMonthLeads - firstMonthLeads) / firstMonthLeads) * 100) : 0
+
+  // Cumulative leads per month
+  let cumulative = 0
+  const monthlyTrendsWithCumulative = monthlyTrends.map(m => {
+    cumulative += m.leads
+    return { ...m, cumulative }
+  })
+
+  // ── Detailed response type breakdown (raw types, not normalized) ──
+  const rawTypeCounts = {}
+  rows.forEach(r => {
+    const raw = r._rawType || 'Other'
+    rawTypeCounts[raw] = (rawTypeCounts[raw] || 0) + 1
+  })
+
   return {
     summary: {
       totalLeads: total,
@@ -306,7 +327,16 @@ function calculateMetrics(rows) {
       { name: 'Forwarded Internally', value: typeCounts['Forwarded Internally'], color: '#8B5CF6' },
       { name: 'Other', value: typeCounts['Other'], color: '#6B7280' },
     ].filter(t => t.value > 0),
-    monthlyTrends,
+    monthlyTrends: monthlyTrendsWithCumulative,
+    growth: {
+      firstMonthLeads,
+      peakMonthLeads,
+      peakMonth: peakMonth?.month || '',
+      growthPct,
+      totalLeads: total,
+      monthCount: monthlyTrends.length,
+      firstMonth: monthlyTrends.length > 0 ? monthlyTrends[0].month : '',
+    },
     projections: {
       leadsActual: currentMonthLeads,
       leadsProjected: Math.max(leadsProjected, currentMonthLeads),

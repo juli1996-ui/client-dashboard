@@ -6,14 +6,12 @@ export default function PipelineHealth({ summary, projections }) {
   const oppMeetingPct = opportunities && meetingsScheduled ? ((meetingsScheduled / opportunities) * 100).toFixed(1) : null
   const emailsPerOpp  = opportunities && emailsSent ? Math.round(emailsSent / opportunities) : null
 
-  // Leads to next meeting
   const leadsPerMeeting = opportunities && meetingsScheduled ? Math.round(opportunities / meetingsScheduled) : null
   const { totalLeads } = summary
   const leadsToNext = leadsPerMeeting && totalLeads != null
     ? leadsPerMeeting - (totalLeads % leadsPerMeeting) || leadsPerMeeting
     : null
 
-  // March projected meetings
   const marchConservative = leadsPerDay ? Math.round(leadsPerDay * 31) : null
   const meetingConvRate   = oppMeetingPct ? parseFloat(oppMeetingPct) / 100 : 0.05
   const marchMeetings     = marchConservative ? Math.round(marchConservative * meetingConvRate) : null
@@ -22,74 +20,74 @@ export default function PipelineHealth({ summary, projections }) {
     {
       value: replyRate != null ? `${replyRate}%` : '—',
       label: 'Reply Rate',
-      color: '#a78bfa',
+      color: '#8B5CF6',
       desc: `${replies?.toLocaleString() ?? '—'} replies from ${emailsSent?.toLocaleString() ?? '—'} emails. Industry benchmark: 0.5–1%`,
     },
     {
       value: replyOppPct != null ? `${replyOppPct}%` : '—',
       label: 'Reply → Opportunity',
-      color: '#2ecc71',
+      color: '#10B981',
       desc: `Nearly 1 in ${replyOppPct ? Math.round(100 / parseFloat(replyOppPct)) : '?'} replies becomes a qualified opportunity`,
     },
     {
       value: oppMeetingPct != null ? `${oppMeetingPct}%` : '—',
       label: 'Opp → Meeting',
-      color: '#fbbf24',
+      color: '#F59E0B',
       desc: `${meetingsScheduled ?? '—'} meeting requests from ${opportunities ?? '—'} opportunities`,
     },
     {
       value: leadsToNext != null ? `~${leadsToNext}` : '—',
       label: 'Leads to Next Meeting',
-      color: '#4a90d9',
+      color: '#3B82F6',
       desc: `Estimated leads needed until the next meeting request at current conversion rate`,
     },
     {
       value: emailsPerOpp != null ? emailsPerOpp.toLocaleString() : '—',
       label: 'Emails / Opportunity',
-      color: '#2dd4bf',
+      color: '#14B8A6',
       desc: `Cost to generate 1 qualified lead. Use this to plan list size for target outcomes`,
     },
     {
       value: marchMeetings != null ? `~${marchMeetings}` : '—',
       label: 'Projected March Meetings',
-      color: '#2ecc71',
+      color: '#10B981',
       desc: `Estimated meeting requests in March based on forecasted leads × ${(meetingConvRate * 100).toFixed(0)}% conversion`,
     },
   ]
 
   return (
-    <div style={{ background: '#16213e', border: '1px solid #2a2d4a', borderRadius: '16px', padding: '32px' }}>
-      {/* Instantly badge */}
+    <div className="glass" style={{ padding: '28px' }}>
       <div style={{
         display: 'inline-flex', alignItems: 'center', gap: '6px',
-        background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)',
-        borderRadius: '8px', padding: '5px 12px',
-        fontSize: '11px', color: '#fbbf24', fontWeight: 600, marginBottom: '20px',
+        background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.12)',
+        borderRadius: '8px', padding: '4px 12px',
+        fontSize: '11px', color: '#F59E0B', fontWeight: 600, marginBottom: '18px',
       }}>
         ⚡ Instantly + live sheet data
       </div>
 
-      <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '20px', fontWeight: 600, color: '#fff', marginBottom: '6px' }}>
+      <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#fff', marginBottom: '4px', letterSpacing: '-0.3px' }}>
         Pipeline Health
       </h2>
-      <p style={{ color: '#a0a8b8', fontSize: '13px', marginBottom: '24px' }}>
+      <p style={{ color: '#525252', fontSize: '13px', marginBottom: '24px' }}>
         Key conversion metrics across the full outreach funnel
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
         {metrics.map(m => (
           <div key={m.label} style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px solid #2a2d4a',
-            borderRadius: '12px', padding: '18px 16px', textAlign: 'center',
+            background: 'rgba(255,255,255,0.02)',
+            border: '1px solid rgba(255,255,255,0.04)',
+            borderRadius: '14px', padding: '18px 16px', textAlign: 'center',
+            transition: 'all 0.2s',
           }}>
-            <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '28px', fontWeight: 700, color: m.color }}>
+            <div style={{ fontSize: '26px', fontWeight: 800, color: m.color, letterSpacing: '-0.5px' }}>
               {m.value}
             </div>
-            <div style={{ fontSize: '11px', color: '#a0a8b8', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600, marginTop: '4px' }}>
+            <div style={{ fontSize: '10px', color: '#525252', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600, marginTop: '4px' }}>
               {m.label}
             </div>
-            <div style={{ fontSize: '11px', color: '#a0a8b8', marginTop: '6px', lineHeight: 1.5 }}>
+            <div style={{ fontSize: '11px', color: '#A3A3A3', marginTop: '8px', lineHeight: 1.5 }}>
               {m.desc}
             </div>
           </div>

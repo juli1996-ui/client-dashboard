@@ -13,37 +13,29 @@ export default function SummaryCards({ data, projections }) {
       value: data.totalLeads?.toLocaleString() ?? '—',
       label: 'Total Leads',
       badge: 'All campaigns',
-      colorClass: 'blue',
-      color: '#4a90d9',
-      glowBg: 'rgba(74,144,217,0.15)',
-      gradTop: 'linear-gradient(90deg,#4a90d9,#7bc3ff)',
+      color: '#3B82F6',
+      glowBg: 'rgba(59,130,246,0.1)',
     },
     {
       value: leadsPerDay != null ? leadsPerDay.toFixed(2) : '—',
       label: 'Leads / Day',
       badge: 'Current pace',
-      colorClass: 'green',
-      color: '#2ecc71',
-      glowBg: 'rgba(46,204,113,0.12)',
-      gradTop: 'linear-gradient(90deg,#2ecc71,#7fffc4)',
+      color: '#10B981',
+      glowBg: 'rgba(16,185,129,0.1)',
     },
     {
       value: data.meetingsScheduled ?? '—',
       label: 'Meeting Requests',
       badge: 'High intent',
-      colorClass: 'amber',
-      color: '#fbbf24',
-      glowBg: 'rgba(251,191,36,0.12)',
-      gradTop: 'linear-gradient(90deg,#fbbf24,#ffe066)',
+      color: '#F59E0B',
+      glowBg: 'rgba(245,158,11,0.1)',
     },
     {
       value: forecastRange,
       label: `${monthLabel} Forecast`,
       badge: 'At current pace',
-      colorClass: 'purple',
-      color: '#a78bfa',
-      glowBg: 'rgba(167,139,250,0.12)',
-      gradTop: 'linear-gradient(90deg,#a78bfa,#c4b5fd)',
+      color: '#8B5CF6',
+      glowBg: 'rgba(139,92,246,0.1)',
     },
   ]
 
@@ -51,32 +43,36 @@ export default function SummaryCards({ data, projections }) {
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
       {cards.map(card => (
         <div key={card.label} style={{
-          background: '#16213e',
-          border: '1px solid #2a2d4a',
-          borderRadius: '14px',
+          background: 'rgba(255,255,255,0.03)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: '16px',
           padding: '22px 18px',
           textAlign: 'center',
           position: 'relative',
           overflow: 'hidden',
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         }}>
-          {/* gradient top bar */}
+          {/* Accent glow top */}
           <div style={{
             position: 'absolute', top: 0, left: 0, right: 0,
-            height: '3px', opacity: 0.7,
-            background: card.gradTop,
+            height: '2px',
+            background: `linear-gradient(90deg, transparent, ${card.color}, transparent)`,
+            opacity: 0.6,
           }} />
 
           <p style={{
-            fontFamily: 'Playfair Display, serif',
-            fontSize: '36px', fontWeight: 700, color: '#fff',
+            fontSize: '36px', fontWeight: 800, color: '#fff',
             lineHeight: 1, marginBottom: '6px', marginTop: '4px',
+            letterSpacing: '-1px',
           }}>
             {card.value}
           </p>
           <p style={{
-            fontSize: '12px', color: '#a0a8b8',
-            textTransform: 'uppercase', letterSpacing: '1px',
-            fontWeight: 500, margin: '0 0 8px',
+            fontSize: '11px', color: '#525252',
+            textTransform: 'uppercase', letterSpacing: '1.5px',
+            fontWeight: 600, margin: '0 0 10px',
           }}>
             {card.label}
           </p>

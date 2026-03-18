@@ -25,7 +25,6 @@ export default function Dashboard() {
   const [loadingSheet, setLoadingSheet] = useState(false)
   const [sheetError, setSheetError] = useState(null)
 
-  // Fetch client record from Supabase
   useEffect(() => {
     async function fetchClient() {
       const { data: row, error } = await supabase
@@ -40,7 +39,6 @@ export default function Dashboard() {
     fetchClient()
   }, [clientId])
 
-  // Fetch Google Sheet + Instantly in parallel once client is loaded
   useEffect(() => {
     if (!client) return
 
@@ -56,7 +54,6 @@ export default function Dashboard() {
     const analyticsPromise = apiKey   ? fetchCampaignAnalytics(apiKey) : Promise.resolve(null)
     const campaignsPromise = apiKey   ? fetchCampaigns(apiKey) : Promise.resolve(null)
 
-    // allSettled so a failing source never blocks the other
     Promise.allSettled([sheetPromise, analyticsPromise, campaignsPromise])
       .then(([sheetResult, analyticsResult, campaignsResult]) => {
         const sheetData = sheetResult.status === 'fulfilled' ? sheetResult.value : null
@@ -91,35 +88,44 @@ export default function Dashboard() {
 
   if (loadingClient) {
     return (
-      <div style={{ minHeight: '100vh', background: '#1a1a2e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', background: '#0A0A0F', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ width: '48px', height: '48px', border: '3px solid #2a2d4a', borderTopColor: '#4a90d9', borderRadius: '50%', margin: '0 auto 16px', animation: 'spin 0.8s linear infinite' }} />
-          <p style={{ color: '#a0a8b8', fontSize: '14px' }}>Loading dashboard...</p>
+          <div style={{ width: '40px', height: '40px', border: '2px solid rgba(255,255,255,0.06)', borderTopColor: '#3B82F6', borderRadius: '50%', margin: '0 auto 16px', animation: 'spin 0.8s linear infinite' }} />
+          <p style={{ color: '#525252', fontSize: '14px' }}>Loading dashboard...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#1a1a2e' }}>
+    <div style={{ minHeight: '100vh', background: '#0A0A0F', position: 'relative' }}>
+      {/* Gradient mesh */}
+      <div className="bg-mesh" />
+
       {/* Header */}
-      <header style={{ background: '#16213e', borderBottom: '1px solid #2a2d4a', position: 'sticky', top: 0, zIndex: 10 }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <header style={{
+        background: 'rgba(10,10,15,0.8)',
+        backdropFilter: 'blur(16px) saturate(150%)',
+        WebkitBackdropFilter: 'blur(16px) saturate(150%)',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        position: 'sticky', top: 0, zIndex: 10,
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <button
               onClick={() => navigate('/clients')}
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid #2a2d4a', borderRadius: '10px', padding: '8px 16px', color: '#a0a8b8', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+              className="btn-ghost"
             >
               ← All Clients
             </button>
 
-            <div style={{ width: '1px', height: '24px', background: '#2a2d4a' }} />
+            <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.06)' }} />
 
             <div>
-              <p style={{ color: '#4a90d9', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '3px', margin: '0 0 2px' }}>
+              <p style={{ color: '#3B82F6', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '3px', margin: '0 0 2px' }}>
                 {client?.company_name || 'Dashboard'}
               </p>
-              <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '18px', fontWeight: 700, color: '#fff', margin: 0 }}>
+              <h1 style={{ fontSize: '16px', fontWeight: 700, color: '#fff', margin: 0, letterSpacing: '-0.3px' }}>
                 {client?.name || 'Client'}
               </h1>
             </div>
@@ -129,13 +135,13 @@ export default function Dashboard() {
             {!loadingSheet && (
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: '6px',
-                fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '20px',
-                background: sheetError ? 'rgba(248,113,113,0.12)' : data ? 'rgba(46,204,113,0.12)' : 'rgba(160,168,184,0.1)',
-                color: sheetError ? '#f87171' : data ? '#2ecc71' : '#a0a8b8',
+                fontSize: '11px', fontWeight: 600, padding: '4px 12px', borderRadius: '20px',
+                background: sheetError ? 'rgba(239,68,68,0.08)' : data ? 'rgba(16,185,129,0.08)' : 'rgba(255,255,255,0.04)',
+                color: sheetError ? '#EF4444' : data ? '#10B981' : '#525252',
               }}>
                 <span style={{
                   width: '6px', height: '6px', borderRadius: '50%',
-                  background: sheetError ? '#f87171' : data ? '#2ecc71' : '#a0a8b8',
+                  background: sheetError ? '#EF4444' : data ? '#10B981' : '#525252',
                 }} className={data && !sheetError ? 'pulse-dot' : ''} />
                 {sheetError ? 'Sheet error' : data ? 'Live data' : 'No sheet'}
               </span>
@@ -143,8 +149,8 @@ export default function Dashboard() {
             {loadingSheet && (
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: '6px',
-                fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '20px',
-                background: 'rgba(74,144,217,0.12)', color: '#4a90d9',
+                fontSize: '11px', fontWeight: 600, padding: '4px 12px', borderRadius: '20px',
+                background: 'rgba(59,130,246,0.08)', color: '#3B82F6',
               }}>
                 <svg style={{ animation: 'spin 0.8s linear infinite', width: '12px', height: '12px' }} viewBox="0 0 24 24" fill="none">
                   <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -156,7 +162,7 @@ export default function Dashboard() {
 
             <button
               onClick={() => supabase.auth.signOut()}
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid #2a2d4a', borderRadius: '10px', padding: '8px 16px', color: '#a0a8b8', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+              className="btn-ghost"
             >
               Sign Out
             </button>
@@ -164,35 +170,44 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 24px' }}>
+      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 24px', position: 'relative', zIndex: 1 }}>
 
         {/* Sheet error banner */}
         {sheetError && (
-          <div style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.25)', borderRadius: '14px', padding: '16px 20px', display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '24px' }}>
-            <svg style={{ width: '20px', height: '20px', color: '#f87171', flexShrink: 0, marginTop: '1px' }} fill="currentColor" viewBox="0 0 20 20">
+          <div style={{
+            background: 'rgba(239,68,68,0.06)',
+            border: '1px solid rgba(239,68,68,0.15)',
+            borderRadius: '16px', padding: '16px 20px',
+            display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '24px',
+          }}>
+            <svg style={{ width: '20px', height: '20px', color: '#EF4444', flexShrink: 0, marginTop: '1px' }} fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
             <div>
-              <p style={{ color: '#f87171', fontWeight: 600, fontSize: '14px', margin: '0 0 2px' }}>Could not load Google Sheet</p>
-              <p style={{ color: 'rgba(248,113,113,0.7)', fontSize: '12px', margin: 0 }}>{sheetError}</p>
+              <p style={{ color: '#EF4444', fontWeight: 600, fontSize: '14px', margin: '0 0 2px' }}>Could not load Google Sheet</p>
+              <p style={{ color: 'rgba(239,68,68,0.6)', fontSize: '12px', margin: 0 }}>{sheetError}</p>
             </div>
           </div>
         )}
 
         {/* No data configured */}
         {!loadingSheet && !data && !sheetError && !client?.google_sheet_url && (
-          <div style={{ background: '#16213e', border: '1px solid #2a2d4a', borderRadius: '14px', padding: '40px 24px', textAlign: 'center', marginBottom: '24px' }}>
-            <p style={{ color: '#a0a8b8', fontWeight: 600, fontSize: '15px', margin: '0 0 4px' }}>No Google Sheet connected</p>
-            <p style={{ color: '#353d60', fontSize: '13px', margin: 0 }}>Add a <code style={{ color: '#a0a8b8' }}>google_sheet_url</code> to this client in Supabase</p>
+          <div className="glass" style={{ padding: '40px 24px', textAlign: 'center', marginBottom: '24px' }}>
+            <p style={{ color: '#A3A3A3', fontWeight: 600, fontSize: '15px', margin: '0 0 4px' }}>No Google Sheet connected</p>
+            <p style={{ color: '#2A2A3A', fontSize: '13px', margin: 0 }}>Add a <code style={{ color: '#A3A3A3', background: 'rgba(255,255,255,0.04)', padding: '2px 6px', borderRadius: '4px' }}>google_sheet_url</code> to this client in Supabase</p>
           </div>
         )}
 
         {/* Loading skeleton */}
         {loadingSheet && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
-            {[...Array(4)].map((_, i) => (
-              <div key={i} style={{ background: '#16213e', border: '1px solid #2a2d4a', borderRadius: '14px', height: '128px', animation: 'pulse 1.5s ease-in-out infinite' }} />
-            ))}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="skeleton" style={{ height: '128px' }} />
+              ))}
+            </div>
+            <div className="skeleton" style={{ height: '200px' }} />
+            <div className="skeleton" style={{ height: '320px' }} />
           </div>
         )}
 
@@ -202,69 +217,59 @@ export default function Dashboard() {
             ? new Date().getDate() - (data.projections.lastActiveDay || 0)
             : 0
           return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          <div className="animate-stagger" style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
 
-            {/* 0. Growth Banner */}
+            {/* Growth Banner */}
             {data.growth && data.growth.growthPct > 0 && (
               <section>
-                <p style={{ color: '#2ecc71', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '3px', margin: '0 0 16px' }}>
+                <p style={{ color: '#10B981', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '3px', margin: '0 0 14px' }}>
                   Campaign Performance
                 </p>
                 <GrowthBanner growth={data.growth} projections={data.projections} />
               </section>
             )}
 
-            {/* 0b. Campaign Paused — missed opportunity banner */}
+            {/* Campaign Paused banner */}
             {data.projections?.campaignPaused && (
               <section>
-                <div style={{
-                  background: 'linear-gradient(135deg, rgba(251,191,36,0.08) 0%, rgba(248,113,113,0.06) 100%)',
-                  border: '1px solid rgba(251,191,36,0.25)',
-                  borderRadius: '16px', padding: '24px 28px',
+                <div className="glass" style={{
+                  background: 'linear-gradient(135deg, rgba(245,158,11,0.06) 0%, rgba(239,68,68,0.04) 100%)',
+                  borderColor: 'rgba(245,158,11,0.15)',
+                  padding: '24px 28px',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
                     <div style={{
-                      width: '44px', height: '44px', borderRadius: '12px', flexShrink: 0,
-                      background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.25)',
+                      width: '40px', height: '40px', borderRadius: '12px', flexShrink: 0,
+                      background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.15)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '20px',
+                      fontSize: '18px',
                     }}>
                       ⚡
                     </div>
                     <div style={{ flex: 1 }}>
-                      <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '18px', fontWeight: 700, color: '#fbbf24', margin: '0 0 8px' }}>
+                      <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#F59E0B', margin: '0 0 8px', letterSpacing: '-0.2px' }}>
                         Untapped Potential — Campaign Contacts Exhausted
                       </h3>
-                      <p style={{ color: '#a0a8b8', fontSize: '14px', lineHeight: 1.7, margin: '0 0 16px' }}>
+                      <p style={{ color: '#A3A3A3', fontSize: '14px', lineHeight: 1.7, margin: '0 0 16px' }}>
                         The campaign ran out of contacts on <strong style={{ color: '#fff' }}>March {data.projections.lastActiveDay}</strong>, generating
                         {' '}<strong style={{ color: '#fff' }}>{data.projections.leadsActual} leads in just {data.projections.activeDays} days</strong> ({data.projections.dailyRate.toFixed(2)} leads/day).
-                        {' '}At this pace, a full month would have produced <strong style={{ color: '#2ecc71' }}>~{data.projections.leadsIfFullMonth} leads</strong>.
+                        {' '}At this pace, a full month would have produced <strong style={{ color: '#10B981' }}>~{data.projections.leadsIfFullMonth} leads</strong>.
                       </p>
-                      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                        <div style={{ padding: '12px 18px', background: 'rgba(46,204,113,0.08)', border: '1px solid rgba(46,204,113,0.2)', borderRadius: '10px', textAlign: 'center' }}>
-                          <p style={{ fontFamily: 'Playfair Display, serif', fontSize: '24px', fontWeight: 700, color: '#2ecc71', margin: '0 0 2px' }}>
-                            ~{data.projections.leadsIfFullMonth}
-                          </p>
-                          <p style={{ color: '#a0a8b8', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', margin: 0 }}>
-                            Full Month Potential
-                          </p>
-                        </div>
-                        <div style={{ padding: '12px 18px', background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)', borderRadius: '10px', textAlign: 'center' }}>
-                          <p style={{ fontFamily: 'Playfair Display, serif', fontSize: '24px', fontWeight: 700, color: '#fbbf24', margin: '0 0 2px' }}>
-                            {data.projections.dailyRate.toFixed(2)}/day
-                          </p>
-                          <p style={{ color: '#a0a8b8', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', margin: 0 }}>
-                            Active Pace
-                          </p>
-                        </div>
-                        <div style={{ padding: '12px 18px', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: '10px', textAlign: 'center' }}>
-                          <p style={{ fontFamily: 'Playfair Display, serif', fontSize: '24px', fontWeight: 700, color: '#f87171', margin: '0 0 2px' }}>
-                            {daysInactive} days
-                          </p>
-                          <p style={{ color: '#a0a8b8', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', margin: 0 }}>
-                            Inactive
-                          </p>
-                        </div>
+                      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                        {[
+                          { value: `~${data.projections.leadsIfFullMonth}`, label: 'Full Month Potential', color: '#10B981' },
+                          { value: `${data.projections.dailyRate.toFixed(2)}/day`, label: 'Active Pace', color: '#F59E0B' },
+                          { value: `${daysInactive} days`, label: 'Inactive', color: '#EF4444' },
+                        ].map(stat => (
+                          <div key={stat.label} className="glass" style={{ padding: '12px 18px', textAlign: 'center' }}>
+                            <p style={{ fontSize: '22px', fontWeight: 700, color: stat.color, lineHeight: 1, margin: '0 0 4px' }}>
+                              {stat.value}
+                            </p>
+                            <p style={{ color: '#525252', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600, margin: 0 }}>
+                              {stat.label}
+                            </p>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -272,38 +277,38 @@ export default function Dashboard() {
               </section>
             )}
 
-            {/* 1. KPI Cards */}
+            {/* KPI Cards */}
             <section>
-              <p style={{ color: '#4a90d9', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '3px', margin: '0 0 16px' }}>
+              <p style={{ color: '#3B82F6', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '3px', margin: '0 0 14px' }}>
                 Overview
               </p>
               <SummaryCards data={data.summary} projections={data.projections} />
             </section>
 
-            {/* 2. Campaign Funnel + Active Campaigns */}
+            {/* Campaign Funnel */}
             {(data.summary.emailsSent != null || data.summary.replies != null || data.summary.meetingsScheduled > 0) && (
               <section>
                 <CampaignFunnel summary={data.summary} campaigns={data.campaigns} />
               </section>
             )}
 
-            {/* 3. Lead Trend chart (full width) */}
+            {/* Lead Trend chart */}
             {data.monthlyTrends.length > 0 && (
               <section>
                 <MonthlyTrendsChart data={data.monthlyTrends} />
               </section>
             )}
 
-            {/* 3b. Cumulative Growth chart (full width) */}
+            {/* Cumulative Growth chart */}
             {data.monthlyTrends.length > 1 && (
               <section>
                 <CumulativeChart data={data.monthlyTrends} />
               </section>
             )}
 
-            {/* 4. Two-column: Monthly Breakdown table + Lead Types donut */}
+            {/* Two-column: Monthly Breakdown + Lead Types */}
             {(data.monthlyTrends.length > 0 || data.replyTypes.length > 0) && (
-              <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+              <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                 {data.monthlyTrends.length > 0 && (
                   <MonthlyBreakdownTable
                     monthlyTrends={data.monthlyTrends}
@@ -314,28 +319,28 @@ export default function Dashboard() {
               </section>
             )}
 
-            {/* 4b. Lead Quality Breakdown (full width) */}
+            {/* Lead Quality Breakdown */}
             {data.replyTypes.length > 0 && (
               <section>
                 <LeadQualityBreakdown replyTypes={data.replyTypes} totalLeads={data.summary.totalLeads} />
               </section>
             )}
 
-            {/* 5. March Forecast */}
+            {/* Forecast */}
             {data.projections && data.summary.leadsPerDay && (
               <section>
                 <MarchForecast summary={data.summary} projections={data.projections} />
               </section>
             )}
 
-            {/* 6. Pipeline Health */}
+            {/* Pipeline Health */}
             {(data.summary.emailsSent != null || data.summary.replies != null) && (
               <section>
                 <PipelineHealth summary={data.summary} projections={data.projections} />
               </section>
             )}
 
-            {/* 7. Monthly Projection (current month vs previous) */}
+            {/* Monthly Projection */}
             {data.projections && (
               <section>
                 <ProjectionsChart data={data.projections} />
@@ -346,7 +351,7 @@ export default function Dashboard() {
           )
         })()}
 
-        <footer style={{ textAlign: 'center', color: '#353d60', fontSize: '12px', paddingTop: '32px', paddingBottom: '16px' }}>
+        <footer style={{ textAlign: 'center', color: '#1A1A27', fontSize: '12px', paddingTop: '32px', paddingBottom: '16px' }}>
           Lead Gen Jay Client Portal — {data ? 'Live Google Sheets data' : 'Connect a sheet to see live data'}
         </footer>
       </main>

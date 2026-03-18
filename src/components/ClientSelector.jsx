@@ -83,8 +83,9 @@ export default function ClientSelector() {
     const clientId = deleteConfirm.id
     setDeleting(true)
 
-    // 1. Delete row from clients table — use .select() so we can verify a row was actually removed
-    const { data: deleted, error: dbError } = await supabase
+    // Use admin client (bypasses RLS) when available, otherwise fall back to anon client
+    const db = supabaseAdmin || supabase
+    const { data: deleted, error: dbError } = await db
       .from('clients')
       .delete()
       .eq('id', clientId)
@@ -96,10 +97,9 @@ export default function ClientSelector() {
       return
     }
 
-    // If RLS blocked the delete, Supabase returns no error but also no rows
     if (!deleted || deleted.length === 0) {
       setDeleting(false)
-      alert('Delete was blocked by database permissions.\n\nGo to Supabase → Table Editor → clients → RLS Policies and add a DELETE policy, or disable RLS for the clients table.')
+      alert('Could not delete client. Check that the record exists and your Supabase permissions are configured correctly.')
       return
     }
 

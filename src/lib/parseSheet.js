@@ -46,20 +46,27 @@ function splitLine(line) {
 // Normalize Response Type to 4 standard buckets
 function normalizeType(raw) {
   const t = (raw || '').toLowerCase()
-  if (t.includes('meeting') || t.includes('call request') || t.includes('schedule')) {
+  if (t.includes('meeting') || t.includes('call request') || t.includes('schedule') || t.includes('requesting visit') || t.includes('requesting demo')) {
     return 'Meeting Request'
   }
-  if (t.includes('forward') || t.includes('escalat')) {
+  if (t.includes('forward') || t.includes('escalat') || t.includes('referral') || t.includes('evaluate internally')) {
     return 'Forwarded Internally'
   }
   if (
     t.includes('interested') ||
+    t.includes('interest') ||
     t.includes('soft interest') ||
     t.includes('keep in mind') ||
     t.includes('send info') ||
     t.includes('requesting more') ||
+    t.includes('request additional') ||
+    t.includes('needs more info') ||
     t.includes('follow up') ||
-    t.includes('high priority')
+    t.includes('high priority') ||
+    t.includes('confirmed') ||
+    t.includes('provided contact') ||
+    t.includes('ready for handoff') ||
+    t.includes('already familiar')
   ) {
     return 'Interested'
   }
@@ -67,11 +74,41 @@ function normalizeType(raw) {
   return 'Other'
 }
 
-// Get YYYY-MM key from a YYYY-MM-DD date string
-function yearMonth(dateStr) {
+// English month abbreviation → month number
+const EN_ABBR_TO_NUM = {
+  jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
+  jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12,
+}
+
+// Parse date string into { year, month, day } or null
+// Supports: "YYYY-MM-DD", "Nov-21-2025", "Jan 27-2026", "Mar-4-2026"
+function parseDate(dateStr) {
   if (!dateStr) return null
-  const m = dateStr.match(/^(\d{4})-(\d{2})-\d{2}$/)
-  return m ? `${m[1]}-${m[2]}` : null
+
+  // YYYY-MM-DD
+  const iso = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (iso) return { year: iso[1], month: iso[2], day: iso[3] }
+
+  // Mon-DD-YYYY or Mon DD-YYYY (e.g. "Nov-21-2025", "Jan 27-2026", "Mar-4-2026")
+  const eng = dateStr.match(/^([A-Za-z]{3})[\s-]+(\d{1,2})[\s-]+(\d{4})$/)
+  if (eng) {
+    const mNum = EN_ABBR_TO_NUM[eng[1].toLowerCase()]
+    if (mNum) return { year: eng[3], month: String(mNum).padStart(2, '0'), day: String(eng[2]).padStart(2, '0') }
+  }
+
+  return null
+}
+
+// Get YYYY-MM key from a date string
+function yearMonth(dateStr) {
+  const d = parseDate(dateStr)
+  return d ? `${d.year}-${d.month}` : null
+}
+
+// Get YYYY-MM-DD key from a date string
+function fullDate(dateStr) {
+  const d = parseDate(dateStr)
+  return d ? `${d.year}-${d.month}-${d.day}` : null
 }
 
 // Parse year-month from Spanish month name using the date for the year
@@ -172,8 +209,8 @@ function calculateMetrics(rows) {
   const currentDayOfMonth = now.getDate()
   const daysInCurrentMonth = new Date(currentYear, currentMonth, 0).getDate()
 
-  // Leads today
-  const leadsToday = rows.filter(r => r._date === todayStr).length
+  // Leads today — compare normalized dates
+  const leadsToday = rows.filter(r => fullDate(r._date) === todayStr).length
 
   // Reply type counts
   const typeCounts = { Interested: 0, 'Meeting Request': 0, 'Forwarded Internally': 0, Other: 0 }

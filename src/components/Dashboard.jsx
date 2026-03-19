@@ -201,7 +201,7 @@ export default function Dashboard() {
         {/* Loading skeleton */}
         {loadingSheet && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="skeleton" style={{ height: '128px' }} />
               ))}

@@ -24,13 +24,6 @@ export default function SummaryCards({ data, projections }) {
       glowBg: 'rgba(16,185,129,0.1)',
     },
     {
-      value: data.meetingsScheduled ?? '—',
-      label: 'Meeting Requests',
-      badge: 'High intent',
-      color: '#F59E0B',
-      glowBg: 'rgba(245,158,11,0.1)',
-    },
-    {
       value: forecastRange,
       label: `${monthLabel} Forecast`,
       badge: 'At current pace',
@@ -40,7 +33,7 @@ export default function SummaryCards({ data, projections }) {
   ]
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
       {cards.map(card => (
         <div key={card.label} style={{
           background: 'rgba(255,255,255,0.03)',

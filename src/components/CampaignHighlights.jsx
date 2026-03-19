@@ -1,19 +1,25 @@
-export default function CampaignHighlights({ highlights, growth, projections }) {
+export default function CampaignHighlights({ highlights, growth, projections, replyTypes }) {
   if (!highlights) return null
 
-  const { velocityMultiplier, topCompanies, recentWins, highIntentPct } = highlights
-  const hasCompanies = topCompanies && topCompanies.length > 0
-  const hasWins = recentWins && recentWins.length > 0
+  const { velocityMultiplier, highIntentPct } = highlights
   const hasVelocity = velocityMultiplier && velocityMultiplier > 1
   const hasIntent = highIntentPct != null && highIntentPct > 0
+  const hasPace = projections && projections.dailyRate > 0
+  const hasReplyTypes = replyTypes && replyTypes.length > 0
 
-  if (!hasCompanies && !hasWins && !hasVelocity && !hasIntent) return null
+  if (!hasVelocity && !hasIntent && !hasPace && !hasReplyTypes) return null
 
-  const TYPE_COLORS = {
-    'Meeting Request': '#F59E0B',
-    'Interested': '#10B981',
-    'Forwarded Internally': '#8B5CF6',
-  }
+  // Monthly pace data
+  const currentRate = projections?.dailyRate || 0
+  const prevLeads = projections?.prevMonthLeads || 0
+  const prevDays = projections?.daysInMonth || 30
+  const prevRate = prevLeads / prevDays
+  const paceChange = prevRate > 0 ? Math.round(((currentRate - prevRate) / prevRate) * 100) : null
+  const paceUp = paceChange !== null && paceChange > 0
+
+  // Reply types total for percentages
+  const replyTotal = hasReplyTypes ? replyTypes.reduce((s, t) => s + t.value, 0) : 0
+  const maxReplyVal = hasReplyTypes ? Math.max(...replyTypes.map(t => t.value)) : 0
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -97,11 +103,102 @@ export default function CampaignHighlights({ highlights, growth, projections }) 
         )}
       </div>
 
-      {/* ── Bottom row: Top Companies + Recent Wins ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: hasCompanies && hasWins ? '1fr 1fr' : '1fr', gap: '16px' }}>
+      {/* ── Bottom row: Monthly Pace + Response Breakdown ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: hasPace && hasReplyTypes ? '1fr 1fr' : '1fr', gap: '16px' }}>
 
-        {/* Top Companies */}
-        {hasCompanies && (
+        {/* Monthly Pace */}
+        {hasPace && (
+          <div className="glass" style={{ padding: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
+              <div style={{
+                width: '32px', height: '32px', borderRadius: '8px',
+                background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.15)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </div>
+              <div>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#fff', margin: 0, letterSpacing: '-0.2px' }}>
+                  Monthly Pace
+                </h3>
+                <p style={{ fontSize: '12px', color: '#525252', margin: 0 }}>Current vs previous month</p>
+              </div>
+            </div>
+
+            {/* Pace bars */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {/* Current */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '13px', color: '#fff', fontWeight: 600 }}>
+                    {projections.currentMonthLabel} — now
+                  </span>
+                  <span style={{ fontSize: '13px', color: '#3B82F6', fontWeight: 700 }}>
+                    {currentRate.toFixed(1)}/day
+                  </span>
+                </div>
+                <div style={{ height: '8px', background: 'rgba(255,255,255,0.04)', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{
+                    width: `${Math.min(100, prevRate > 0 ? Math.round((currentRate / Math.max(currentRate, prevRate)) * 100) : 100)}%`,
+                    height: '100%',
+                    background: 'linear-gradient(90deg, rgba(59,130,246,0.3), #3B82F6)',
+                    borderRadius: '4px',
+                    transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
+                  }} />
+                </div>
+              </div>
+
+              {/* Previous */}
+              {prevRate > 0 && (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '13px', color: '#A3A3A3' }}>
+                      Last month
+                    </span>
+                    <span style={{ fontSize: '13px', color: '#525252', fontWeight: 600 }}>
+                      {prevRate.toFixed(1)}/day
+                    </span>
+                  </div>
+                  <div style={{ height: '8px', background: 'rgba(255,255,255,0.04)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{
+                      width: `${Math.round((prevRate / Math.max(currentRate, prevRate)) * 100)}%`,
+                      height: '100%',
+                      background: 'rgba(255,255,255,0.1)',
+                      borderRadius: '4px',
+                      transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
+                    }} />
+                  </div>
+                </div>
+              )}
+
+              {/* Change indicator */}
+              {paceChange !== null && (
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  padding: '6px 12px', borderRadius: '8px',
+                  background: paceUp ? 'rgba(16,185,129,0.06)' : 'rgba(239,68,68,0.06)',
+                  border: `1px solid ${paceUp ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)'}`,
+                  alignSelf: 'flex-start',
+                }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={paceUp ? '#10B981' : '#EF4444'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    {paceUp
+                      ? <><polyline points="18 15 12 9 6 15"/></>
+                      : <><polyline points="6 9 12 15 18 9"/></>
+                    }
+                  </svg>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: paceUp ? '#10B981' : '#EF4444' }}>
+                    {paceUp ? '+' : ''}{paceChange}% vs last month
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Response Breakdown */}
+        {hasReplyTypes && (
           <div className="glass" style={{ padding: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
               <div style={{
@@ -110,127 +207,43 @@ export default function CampaignHighlights({ highlights, growth, projections }) 
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
                 </svg>
               </div>
               <div>
                 <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#fff', margin: 0, letterSpacing: '-0.2px' }}>
-                  Top Companies
+                  Response Breakdown
                 </h3>
-                <p style={{ fontSize: '12px', color: '#525252', margin: 0 }}>Who's responding the most</p>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {topCompanies.map((company, i) => {
-                const maxCount = topCompanies[0].count
-                const barWidth = Math.max(8, Math.round((company.count / maxCount) * 100))
-                return (
-                  <div key={company.name} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{
-                      width: '20px', height: '20px', borderRadius: '6px',
-                      background: i === 0 ? 'rgba(139,92,246,0.15)' : 'rgba(255,255,255,0.04)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '10px', fontWeight: 700,
-                      color: i === 0 ? '#8B5CF6' : '#525252',
-                      flexShrink: 0,
-                    }}>
-                      {i + 1}
-                    </span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-                        <span style={{
-                          fontSize: '13px', color: i === 0 ? '#fff' : '#A3A3A3', fontWeight: i === 0 ? 600 : 400,
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                        }}>
-                          {company.name}
-                        </span>
-                        <span style={{ fontSize: '12px', color: '#8B5CF6', fontWeight: 700, flexShrink: 0, marginLeft: '8px' }}>
-                          {company.count}
-                        </span>
-                      </div>
-                      <div style={{ height: '3px', background: 'rgba(255,255,255,0.04)', borderRadius: '2px', overflow: 'hidden' }}>
-                        <div style={{
-                          width: `${barWidth}%`, height: '100%',
-                          background: i === 0 ? '#8B5CF6' : 'rgba(139,92,246,0.4)',
-                          borderRadius: '2px',
-                          transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-                        }} />
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Recent Wins */}
-        {hasWins && (
-          <div className="glass" style={{ padding: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
-              <div style={{
-                width: '32px', height: '32px', borderRadius: '8px',
-                background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-              </div>
-              <div>
-                <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#fff', margin: 0, letterSpacing: '-0.2px' }}>
-                  Recent Wins
-                </h3>
-                <p style={{ fontSize: '12px', color: '#525252', margin: 0 }}>Latest high-intent responses</p>
+                <p style={{ fontSize: '12px', color: '#525252', margin: 0 }}>How leads are engaging</p>
               </div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {recentWins.map((lead, i) => (
-                <div key={i} style={{
-                  display: 'flex', alignItems: 'center', gap: '12px',
-                  padding: '10px 14px',
-                  background: 'rgba(255,255,255,0.02)',
-                  border: '1px solid rgba(255,255,255,0.04)',
-                  borderRadius: '10px',
-                  transition: 'all 0.15s',
-                }}>
-                  <div style={{
-                    width: '36px', height: '36px', borderRadius: '10px',
-                    background: `${TYPE_COLORS[lead.type] || '#525252'}12`,
-                    border: `1px solid ${TYPE_COLORS[lead.type] || '#525252'}25`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexShrink: 0,
-                  }}>
-                    <span style={{ fontSize: '14px' }}>
-                      {lead.type === 'Meeting Request' ? '📅' : lead.type === 'Forwarded Internally' ? '↗' : '✓'}
-                    </span>
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      fontSize: '13px', fontWeight: 600, color: '#fff',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
-                      {lead.name}
+              {replyTypes.map(type => {
+                const pct = replyTotal > 0 ? Math.round((type.value / replyTotal) * 100) : 0
+                const barWidth = maxReplyVal > 0 ? Math.max(6, Math.round((type.value / maxReplyVal) * 100)) : 0
+                return (
+                  <div key={type.name}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '13px', color: '#A3A3A3', fontWeight: 500 }}>
+                        {type.name}
+                      </span>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: type.color }}>
+                        {type.value} <span style={{ color: '#525252', fontWeight: 400 }}>({pct}%)</span>
+                      </span>
                     </div>
-                    <div style={{
-                      fontSize: '11px', color: '#525252', marginTop: '1px',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
-                      {[lead.title, lead.org].filter(Boolean).join(' · ') || lead.type}
+                    <div style={{ height: '6px', background: 'rgba(255,255,255,0.04)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{
+                        width: `${barWidth}%`,
+                        height: '100%',
+                        background: `linear-gradient(90deg, ${type.color}40, ${type.color})`,
+                        borderRadius: '3px',
+                        transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                      }} />
                     </div>
                   </div>
-                  <span style={{
-                    fontSize: '10px', fontWeight: 600, padding: '2px 8px', borderRadius: '12px',
-                    background: `${TYPE_COLORS[lead.type] || '#525252'}15`,
-                    color: TYPE_COLORS[lead.type] || '#525252',
-                    flexShrink: 0, whiteSpace: 'nowrap',
-                  }}>
-                    {lead.type === 'Meeting Request' ? 'Meeting' : lead.type === 'Forwarded Internally' ? 'Forwarded' : 'Interested'}
-                  </span>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}

@@ -225,7 +225,7 @@ export default function Dashboard() {
                 <p style={{ color: '#10B981', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '3px', margin: '0 0 14px' }}>
                   Campaign Highlights
                 </p>
-                <CampaignHighlights highlights={data.highlights} growth={data.growth} projections={data.projections} />
+                <CampaignHighlights highlights={data.highlights} growth={data.growth} projections={data.projections} replyTypes={data.replyTypes} />
               </section>
             )}
 

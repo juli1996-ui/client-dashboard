@@ -9,8 +9,6 @@ import CampaignFunnel from './CampaignFunnel'
 import MonthlyTrendsChart from './MonthlyTrendsChart'
 import CumulativeChart from './CumulativeChart'
 import MonthlyBreakdownTable from './MonthlyBreakdownTable'
-import ReplyTypesChart from './ReplyTypesChart'
-import LeadQualityBreakdown from './LeadQualityBreakdown'
 import MarchForecast from './MarchForecast'
 import PipelineHealth from './PipelineHealth'
 import ProjectionsChart from './ProjectionsChart'
@@ -306,23 +304,13 @@ export default function Dashboard() {
               </section>
             )}
 
-            {/* Two-column: Monthly Breakdown + Lead Types */}
-            {(data.monthlyTrends.length > 0 || data.replyTypes.length > 0) && (
-              <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                {data.monthlyTrends.length > 0 && (
-                  <MonthlyBreakdownTable
-                    monthlyTrends={data.monthlyTrends}
-                    projections={data.projections}
-                  />
-                )}
-                {data.replyTypes.length > 0 && <ReplyTypesChart data={data.replyTypes} />}
-              </section>
-            )}
-
-            {/* Lead Quality Breakdown */}
-            {data.replyTypes.length > 0 && (
+            {/* Monthly Breakdown Table */}
+            {data.monthlyTrends.length > 0 && (
               <section>
-                <LeadQualityBreakdown replyTypes={data.replyTypes} totalLeads={data.summary.totalLeads} />
+                <MonthlyBreakdownTable
+                  monthlyTrends={data.monthlyTrends}
+                  projections={data.projections}
+                />
               </section>
             )}
 

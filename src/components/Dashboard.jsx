@@ -13,9 +13,25 @@ import MarchForecast from './MarchForecast'
 import PipelineHealth from './PipelineHealth'
 import ProjectionsChart from './ProjectionsChart'
 
-export default function Dashboard() {
+export default function Dashboard({ isAdmin, clientRecord }) {
   const { clientId } = useParams()
   const navigate = useNavigate()
+
+  // If this is a client user trying to access another client's dashboard, redirect
+  const unauthorized = clientRecord && clientRecord.id !== clientId
+  if (unauthorized) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#0A0A0F', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="glass" style={{ padding: '40px', textAlign: 'center', maxWidth: '400px' }}>
+          <p style={{ color: '#EF4444', fontSize: '16px', fontWeight: 600, margin: '0 0 8px' }}>Access Denied</p>
+          <p style={{ color: '#525252', fontSize: '14px', margin: '0 0 20px' }}>You can only view your own dashboard.</p>
+          <button onClick={() => navigate(`/dashboard/${clientRecord.id}`)} className="btn-primary" style={{ padding: '10px 24px' }}>
+            Go to My Dashboard
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   const [client, setClient] = useState(null)
   const [data, setData] = useState(null)
@@ -110,14 +126,17 @@ export default function Dashboard() {
       }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <button
-              onClick={() => navigate('/clients')}
-              className="btn-ghost"
-            >
-              ← All Clients
-            </button>
-
-            <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.06)' }} />
+            {isAdmin && (
+              <>
+                <button
+                  onClick={() => navigate('/clients')}
+                  className="btn-ghost"
+                >
+                  ← All Clients
+                </button>
+                <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.06)' }} />
+              </>
+            )}
 
             <div>
               <p style={{ color: '#3B82F6', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '3px', margin: '0 0 2px' }}>

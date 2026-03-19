@@ -26,9 +26,9 @@ export default function CampaignHighlights({ highlights, growth, projections, re
   const maxReplyVal = hasReplyTypes ? Math.max(...replyTypes.map(t => t.value)) : 0
 
   const tipBtnStyle = (id) => ({
-    width: '20px', height: '20px', borderRadius: '50%',
-    background: openTip === id ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.04)',
-    border: `1px solid ${openTip === id ? 'rgba(59,130,246,0.3)' : 'rgba(255,255,255,0.06)'}`,
+    width: '28px', height: '28px', borderRadius: '50%',
+    background: openTip === id ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.08)',
+    border: `1px solid ${openTip === id ? 'rgba(59,130,246,0.4)' : 'rgba(255,255,255,0.12)'}`,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     cursor: 'pointer', flexShrink: 0, padding: 0,
     transition: 'all 0.2s ease',
@@ -82,7 +82,7 @@ export default function CampaignHighlights({ highlights, growth, projections, re
                     </p>
                   </div>
                   <button onClick={() => toggle('velocity')} style={tipBtnStyle('velocity')}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={openTip === 'velocity' ? '#3B82F6' : '#525252'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={openTip === 'velocity' ? '#3B82F6' : '#A3A3A3'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
                     </svg>
                   </button>
@@ -137,7 +137,7 @@ export default function CampaignHighlights({ highlights, growth, projections, re
                     </p>
                   </div>
                   <button onClick={() => toggle('intent')} style={tipBtnStyle('intent')}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={openTip === 'intent' ? '#3B82F6' : '#525252'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={openTip === 'intent' ? '#3B82F6' : '#A3A3A3'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
                     </svg>
                   </button>
@@ -179,7 +179,7 @@ export default function CampaignHighlights({ highlights, growth, projections, re
                 </div>
               </div>
               <button onClick={() => toggle('pace')} style={tipBtnStyle('pace')}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={openTip === 'pace' ? '#3B82F6' : '#525252'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={openTip === 'pace' ? '#3B82F6' : '#A3A3A3'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
                 </svg>
               </button>
@@ -284,7 +284,7 @@ export default function CampaignHighlights({ highlights, growth, projections, re
                 </div>
               </div>
               <button onClick={() => toggle('replies')} style={tipBtnStyle('replies')}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={openTip === 'replies' ? '#3B82F6' : '#525252'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={openTip === 'replies' ? '#3B82F6' : '#A3A3A3'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
                 </svg>
               </button>

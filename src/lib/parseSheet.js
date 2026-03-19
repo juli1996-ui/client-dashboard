@@ -160,6 +160,9 @@ function parseCSV(text) {
   const monthCol   = idx(['month', 'mes'])
   const dateCol    = idx(['response date', 'date', 'fecha'])
   const typeCol    = idx(['response type', 'type', 'tipo'])
+  const nameCol    = idx(['lead name', 'name', 'nombre'])
+  const orgCol     = idx(['organization', 'company', 'empresa', 'org'])
+  const titleCol   = idx(['job title', 'title', 'cargo', 'puesto'])
 
   const rows = []
 
@@ -170,6 +173,9 @@ function parseCSV(text) {
     const monthName = monthCol >= 0 ? vals[monthCol] : vals[0]
     const dateStr   = dateCol  >= 0 ? vals[dateCol]  : ''
     const rawType   = typeCol  >= 0 ? vals[typeCol]  : ''
+    const leadName  = nameCol  >= 0 ? vals[nameCol]  : ''
+    const org       = orgCol   >= 0 ? vals[orgCol]   : ''
+    const jobTitle  = titleCol >= 0 ? vals[titleCol]  : ''
 
     // Determine year-month for chronological sorting
     // Prefer using the actual date; fall back to month name + year from date
@@ -187,9 +193,13 @@ function parseCSV(text) {
     rows.push({
       _ym:   ym,                         // "2025-08"
       _date: dateStr,
+      _fullDate: fullDate(dateStr),
       _type: normalizeType(rawType),
       _rawType: rawType || 'Other',
       _monthName: monthName,
+      _name: leadName,
+      _org: org,
+      _title: jobTitle,
     })
   }
 
@@ -328,6 +338,61 @@ function calculateMetrics(rows) {
     rawTypeCounts[raw] = (rawTypeCounts[raw] || 0) + 1
   })
 
+  // ── Campaign Highlights ──────────────────────────────────
+
+  // Lead velocity: current pace vs first month
+  const firstMonthDays = monthlyTrends.length > 0 ? monthlyTrends[0].days : 30
+  const firstMonthRate = firstMonthLeads / firstMonthDays
+  const velocityMultiplier = firstMonthRate > 0 && dailyRate > 0
+    ? Math.round((dailyRate / firstMonthRate) * 10) / 10
+    : null
+
+  // Top companies responding (all time, sorted by count)
+  const orgCounts = {}
+  rows.forEach(r => {
+    const org = (r._org || '').trim()
+    if (org && org.toLowerCase() !== 'n/a' && org !== '-' && org !== '') {
+      orgCounts[org] = (orgCounts[org] || 0) + 1
+    }
+  })
+  const topCompanies = Object.entries(orgCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([name, count]) => ({ name, count }))
+
+  // Recent high-intent leads (Interested + Meeting Request, sorted by date desc)
+  const highIntentTypes = ['Interested', 'Meeting Request', 'Forwarded Internally']
+  const recentWins = rows
+    .filter(r => highIntentTypes.includes(r._type) && r._fullDate)
+    .sort((a, b) => (b._fullDate || '').localeCompare(a._fullDate || ''))
+    .slice(0, 5)
+    .map(r => ({
+      name: r._name || 'Unknown',
+      org: r._org || '',
+      title: r._title || '',
+      type: r._type,
+      date: r._date,
+    }))
+
+  // Best week (group by ISO week, find highest)
+  const weekCounts = {}
+  rows.forEach(r => {
+    const d = parseDate(r._date)
+    if (!d) return
+    const date = new Date(Number(d.year), Number(d.month) - 1, Number(d.day))
+    const startOfYear = new Date(date.getFullYear(), 0, 1)
+    const weekNum = Math.ceil(((date - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7)
+    const key = `${d.year}-W${String(weekNum).padStart(2, '0')}`
+    if (!weekCounts[key]) weekCounts[key] = { count: 0, startDate: date }
+    weekCounts[key].count++
+    if (date < weekCounts[key].startDate) weekCounts[key].startDate = date
+  })
+  const bestWeekEntry = Object.entries(weekCounts).sort((a, b) => b[1].count - a[1].count)[0]
+  const bestWeek = bestWeekEntry ? {
+    leads: bestWeekEntry[1].count,
+    weekStart: bestWeekEntry[1].startDate,
+  } : null
+
   return {
     summary: {
       totalLeads: total,
@@ -368,6 +433,12 @@ function calculateMetrics(rows) {
       prevMonthLeads,
       currentYM,
       currentMonthLabel,
+    },
+    highlights: {
+      velocityMultiplier,
+      topCompanies,
+      recentWins,
+      bestWeek,
     },
     campaigns: [],
   }

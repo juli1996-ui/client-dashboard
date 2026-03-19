@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { fetchSheetData } from '../lib/parseSheet'
 import { fetchCampaignAnalytics, fetchCampaigns } from '../lib/instantly'
 import SummaryCards from './SummaryCards'
-import GrowthBanner from './GrowthBanner'
+import CampaignHighlights from './CampaignHighlights'
 import CampaignFunnel from './CampaignFunnel'
 import MonthlyTrendsChart from './MonthlyTrendsChart'
 import CumulativeChart from './CumulativeChart'
@@ -219,13 +219,13 @@ export default function Dashboard() {
           return (
           <div className="animate-stagger" style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
 
-            {/* Growth Banner */}
-            {data.growth && data.growth.growthPct > 0 && (
+            {/* Campaign Highlights */}
+            {data.highlights && (
               <section>
                 <p style={{ color: '#10B981', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '3px', margin: '0 0 14px' }}>
-                  Campaign Performance
+                  Campaign Highlights
                 </p>
-                <GrowthBanner growth={data.growth} projections={data.projections} />
+                <CampaignHighlights highlights={data.highlights} growth={data.growth} projections={data.projections} />
               </section>
             )}
 

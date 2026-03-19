@@ -5,49 +5,43 @@ import Login from './components/Login'
 import ClientSelector from './components/ClientSelector'
 import Dashboard from './components/Dashboard'
 
+const STORAGE_KEY = 'lgj_client'
+
 function App() {
+  // Admin auth (Supabase session)
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [clientRecord, setClientRecord] = useState(undefined) // undefined = loading, null = admin, object = client
+
+  // Client access (email-only, stored in localStorage)
+  const [clientAccess, setClientAccess] = useState(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY)
+      return stored ? JSON.parse(stored) : null
+    } catch { return null }
+  })
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
-      if (!session) setLoading(false)
+      setLoading(false)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
-      if (!session) {
-        setClientRecord(undefined)
-        setLoading(false)
-      }
     })
 
     return () => subscription.unsubscribe()
   }, [])
 
-  // Once we have a session, check if this user is a client
-  useEffect(() => {
-    if (!session) return
+  const handleClientAccess = (clientData) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(clientData))
+    setClientAccess(clientData)
+  }
 
-    const email = session.user?.email
-    if (!email) {
-      setClientRecord(null)
-      setLoading(false)
-      return
-    }
-
-    supabase
-      .from('clients')
-      .select('id, name, email, company_name')
-      .eq('email', email)
-      .maybeSingle()
-      .then(({ data }) => {
-        setClientRecord(data || null) // null = no match = admin
-        setLoading(false)
-      })
-  }, [session])
+  const handleClientLogout = () => {
+    localStorage.removeItem(STORAGE_KEY)
+    setClientAccess(null)
+  }
 
   if (loading) {
     return (
@@ -57,38 +51,47 @@ function App() {
     )
   }
 
-  const isClient = session && clientRecord
-  const isAdmin = session && clientRecord === null
+  const isAdmin = !!session
+  const isClient = !isAdmin && !!clientAccess
+  const isLoggedIn = isAdmin || isClient
 
   return (
     <BrowserRouter>
       <Routes>
         <Route
           path="/login"
-          element={!session ? <Login /> : <Navigate to={isClient ? `/dashboard/${clientRecord.id}` : '/clients'} replace />}
+          element={
+            isAdmin ? <Navigate to="/clients" replace />
+            : isClient ? <Navigate to={`/dashboard/${clientAccess.id}`} replace />
+            : <Login onClientAccess={handleClientAccess} />
+          }
         />
         <Route
           path="/clients"
           element={
-            !session ? <Navigate to="/login" replace />
-            : isClient ? <Navigate to={`/dashboard/${clientRecord.id}`} replace />
-            : <ClientSelector />
+            isAdmin ? <ClientSelector />
+            : isClient ? <Navigate to={`/dashboard/${clientAccess.id}`} replace />
+            : <Navigate to="/login" replace />
           }
         />
         <Route
           path="/dashboard/:clientId"
           element={
-            !session ? <Navigate to="/login" replace />
-            : <Dashboard isAdmin={isAdmin} clientRecord={clientRecord} />
+            !isLoggedIn ? <Navigate to="/login" replace />
+            : <Dashboard
+                isAdmin={isAdmin}
+                clientRecord={isClient ? clientAccess : null}
+                onLogout={isClient ? handleClientLogout : undefined}
+              />
           }
         />
         <Route
           path="*"
           element={
             <Navigate to={
-              !session ? '/login'
-              : isClient ? `/dashboard/${clientRecord.id}`
-              : '/clients'
+              isAdmin ? '/clients'
+              : isClient ? `/dashboard/${clientAccess.id}`
+              : '/login'
             } replace />
           }
         />

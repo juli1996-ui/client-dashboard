@@ -1,19 +1,54 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
-export default function Login() {
+export default function Login({ onClientAccess }) {
+  const [mode, setMode] = useState('client') // 'client' or 'admin'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleLogin = async (e) => {
+  const handleClientAccess = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+
+    const { data, error: dbErr } = await supabase
+      .from('clients')
+      .select('id, name, email, company_name')
+      .eq('email', email.trim().toLowerCase())
+      .maybeSingle()
+
+    if (dbErr) {
+      setError('Something went wrong. Please try again.')
+      setLoading(false)
+      return
+    }
+
+    if (!data) {
+      setError('No account found with this email. Please check and try again.')
+      setLoading(false)
+      return
+    }
+
+    setLoading(false)
+    onClientAccess(data)
+  }
+
+  const handleAdminLogin = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) setError(error.message)
     setLoading(false)
+  }
+
+  const switchMode = (newMode) => {
+    setMode(newMode)
+    setError('')
+    setEmail('')
+    setPassword('')
   }
 
   return (
@@ -33,7 +68,12 @@ export default function Login() {
           <h1 style={{ fontSize: '36px', fontWeight: 800, letterSpacing: '-0.5px', marginBottom: '8px' }}>
             Client Portal
           </h1>
-          <p style={{ color: '#525252', fontSize: '14px' }}>Sign in to access your campaign dashboard</p>
+          <p style={{ color: '#525252', fontSize: '14px' }}>
+            {mode === 'client'
+              ? 'Enter your email to view your campaign dashboard'
+              : 'Admin sign in'
+            }
+          </p>
         </div>
 
         {/* Glass card */}
@@ -45,67 +85,130 @@ export default function Login() {
           borderRadius: '20px',
           padding: '36px',
         }}>
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div>
-              <label style={labelStyle}>Email Address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="you@company.com"
-                required
-                className="input-glass"
-              />
-            </div>
-
-            <div>
-              <label style={labelStyle}>Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                className="input-glass"
-              />
-            </div>
-
-            {error && (
-              <div style={{
-                background: 'rgba(239,68,68,0.08)',
-                border: '1px solid rgba(239,68,68,0.2)',
-                borderRadius: '10px',
-                padding: '12px 16px',
-                color: '#EF4444',
-                fontSize: '13px',
-              }}>
-                {error}
+          {mode === 'client' ? (
+            <form onSubmit={handleClientAccess} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div>
+                <label style={labelStyle}>Email Address</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="you@company.com"
+                  required
+                  className="input-glass"
+                />
               </div>
-            )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary"
-              style={{
-                width: '100%',
-                padding: '13px',
-                fontSize: '14px',
-                fontWeight: 700,
-                opacity: loading ? 0.6 : 1,
-                cursor: loading ? 'not-allowed' : 'pointer',
-                marginTop: '4px',
-              }}
-            >
-              {loading ? 'Signing in...' : 'Sign In'}
-            </button>
-          </form>
+              {error && <ErrorBox message={error} />}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary"
+                style={{
+                  width: '100%', padding: '13px', fontSize: '14px', fontWeight: 700,
+                  opacity: loading ? 0.6 : 1,
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  marginTop: '4px',
+                }}
+              >
+                {loading ? 'Checking...' : 'View My Dashboard'}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleAdminLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div>
+                <label style={labelStyle}>Email Address</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="admin@leadgenjay.com"
+                  required
+                  className="input-glass"
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Password</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="input-glass"
+                />
+              </div>
+
+              {error && <ErrorBox message={error} />}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary"
+                style={{
+                  width: '100%', padding: '13px', fontSize: '14px', fontWeight: 700,
+                  opacity: loading ? 0.6 : 1,
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  marginTop: '4px',
+                }}
+              >
+                {loading ? 'Signing in...' : 'Sign In'}
+              </button>
+            </form>
+          )}
         </div>
 
-        <p style={{ textAlign: 'center', fontSize: '12px', marginTop: '24px', color: '#2A2A3A' }}>
+        {/* Toggle link */}
+        <p style={{ textAlign: 'center', fontSize: '13px', marginTop: '20px', color: '#525252' }}>
+          {mode === 'client' ? (
+            <button
+              onClick={() => switchMode('admin')}
+              style={{
+                background: 'none', border: 'none', color: '#525252',
+                fontSize: '13px', cursor: 'pointer', fontFamily: 'Inter, system-ui, sans-serif',
+                transition: 'color 0.15s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.color = '#A3A3A3'}
+              onMouseLeave={e => e.currentTarget.style.color = '#525252'}
+            >
+              Admin Sign In
+            </button>
+          ) : (
+            <button
+              onClick={() => switchMode('client')}
+              style={{
+                background: 'none', border: 'none', color: '#525252',
+                fontSize: '13px', cursor: 'pointer', fontFamily: 'Inter, system-ui, sans-serif',
+                transition: 'color 0.15s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.color = '#A3A3A3'}
+              onMouseLeave={e => e.currentTarget.style.color = '#525252'}
+            >
+              ← Back to Client Access
+            </button>
+          )}
+        </p>
+
+        <p style={{ textAlign: 'center', fontSize: '12px', marginTop: '16px', color: '#2A2A3A' }}>
           © 2026 Lead Gen Jay. All rights reserved.
         </p>
       </div>
+    </div>
+  )
+}
+
+function ErrorBox({ message }) {
+  return (
+    <div style={{
+      background: 'rgba(239,68,68,0.08)',
+      border: '1px solid rgba(239,68,68,0.2)',
+      borderRadius: '10px',
+      padding: '12px 16px',
+      color: '#EF4444',
+      fontSize: '13px',
+    }}>
+      {message}
     </div>
   )
 }

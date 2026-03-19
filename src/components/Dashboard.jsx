@@ -13,7 +13,7 @@ import MarchForecast from './MarchForecast'
 import PipelineHealth from './PipelineHealth'
 import ProjectionsChart from './ProjectionsChart'
 
-export default function Dashboard({ isAdmin, clientRecord }) {
+export default function Dashboard({ isAdmin, clientRecord, onLogout }) {
   const { clientId } = useParams()
   const navigate = useNavigate()
 
@@ -178,7 +178,10 @@ export default function Dashboard({ isAdmin, clientRecord }) {
             )}
 
             <button
-              onClick={() => supabase.auth.signOut()}
+              onClick={() => {
+                if (onLogout) { onLogout(); navigate('/login') }
+                else supabase.auth.signOut()
+              }}
               className="btn-ghost"
             >
               Sign Out

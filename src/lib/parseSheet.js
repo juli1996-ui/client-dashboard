@@ -374,24 +374,9 @@ function calculateMetrics(rows) {
       date: r._date,
     }))
 
-  // Best week (group by ISO week, find highest)
-  const weekCounts = {}
-  rows.forEach(r => {
-    const d = parseDate(r._date)
-    if (!d) return
-    const date = new Date(Number(d.year), Number(d.month) - 1, Number(d.day))
-    const startOfYear = new Date(date.getFullYear(), 0, 1)
-    const weekNum = Math.ceil(((date - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7)
-    const key = `${d.year}-W${String(weekNum).padStart(2, '0')}`
-    if (!weekCounts[key]) weekCounts[key] = { count: 0, startDate: date }
-    weekCounts[key].count++
-    if (date < weekCounts[key].startDate) weekCounts[key].startDate = date
-  })
-  const bestWeekEntry = Object.entries(weekCounts).sort((a, b) => b[1].count - a[1].count)[0]
-  const bestWeek = bestWeekEntry ? {
-    leads: bestWeekEntry[1].count,
-    weekStart: bestWeekEntry[1].startDate,
-  } : null
+  // High-intent percentage (Interested + Meeting Request + Forwarded / Total)
+  const highIntentCount = (typeCounts['Interested'] || 0) + (typeCounts['Meeting Request'] || 0) + (typeCounts['Forwarded Internally'] || 0)
+  const highIntentPct = total > 0 ? Math.round((highIntentCount / total) * 100) : 0
 
   return {
     summary: {
@@ -438,7 +423,7 @@ function calculateMetrics(rows) {
       velocityMultiplier,
       topCompanies,
       recentWins,
-      bestWeek,
+      highIntentPct,
     },
     campaigns: [],
   }

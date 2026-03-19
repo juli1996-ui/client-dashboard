@@ -1,12 +1,13 @@
 export default function CampaignHighlights({ highlights, growth, projections }) {
   if (!highlights) return null
 
-  const { velocityMultiplier, topCompanies, recentWins, bestWeek } = highlights
+  const { velocityMultiplier, topCompanies, recentWins, highIntentPct } = highlights
   const hasCompanies = topCompanies && topCompanies.length > 0
   const hasWins = recentWins && recentWins.length > 0
   const hasVelocity = velocityMultiplier && velocityMultiplier > 1
+  const hasIntent = highIntentPct != null && highIntentPct > 0
 
-  if (!hasCompanies && !hasWins && !hasVelocity) return null
+  if (!hasCompanies && !hasWins && !hasVelocity && !hasIntent) return null
 
   const TYPE_COLORS = {
     'Meeting Request': '#F59E0B',
@@ -14,16 +15,11 @@ export default function CampaignHighlights({ highlights, growth, projections }) 
     'Forwarded Internally': '#8B5CF6',
   }
 
-  // Format best week date
-  const bestWeekLabel = bestWeek?.weekStart
-    ? bestWeek.weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    : null
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-      {/* ── Top row: Velocity + Best Week ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: hasVelocity && bestWeek ? '1fr 1fr' : '1fr', gap: '16px' }}>
+      {/* ── Top row: Velocity + High Intent ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: hasVelocity && hasIntent ? '1fr 1fr' : '1fr', gap: '16px' }}>
 
         {/* Lead Velocity */}
         {hasVelocity && (
@@ -60,35 +56,40 @@ export default function CampaignHighlights({ highlights, growth, projections }) 
           </div>
         )}
 
-        {/* Best Week */}
-        {bestWeek && (
+        {/* High Intent % */}
+        {hasIntent && (
           <div className="glass" style={{ padding: '24px', position: 'relative', overflow: 'hidden' }}>
             <div style={{
               position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
-              background: 'linear-gradient(90deg, transparent, #3B82F6, transparent)',
+              background: 'linear-gradient(90deg, transparent, #F59E0B, transparent)',
               opacity: 0.5,
             }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{
                 width: '48px', height: '48px', borderRadius: '14px',
-                background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.15)',
+                background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.15)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z"/>
                 </svg>
               </div>
               <div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                  <span style={{ fontSize: '36px', fontWeight: 800, color: '#3B82F6', lineHeight: 1, letterSpacing: '-1.5px' }}>
-                    {bestWeek.leads}
+                  <span style={{ fontSize: '36px', fontWeight: 800, color: '#F59E0B', lineHeight: 1, letterSpacing: '-1.5px' }}>
+                    {highIntentPct}%
                   </span>
                   <span style={{ fontSize: '13px', color: '#A3A3A3', fontWeight: 500 }}>
-                    leads
+                    high intent
                   </span>
                 </div>
                 <p style={{ color: '#525252', fontSize: '13px', margin: '4px 0 0' }}>
-                  Best week — starting <strong style={{ color: '#A3A3A3' }}>{bestWeekLabel}</strong>
+                  {highIntentPct >= 70
+                    ? <>Exceptional quality — <strong style={{ color: '#A3A3A3' }}>most campaigns average 40-60%</strong></>
+                    : highIntentPct >= 50
+                    ? <>Above average — <strong style={{ color: '#A3A3A3' }}>targeting is resonating well</strong></>
+                    : <>Interested, meetings, and forwarded responses</>
+                  }
                 </p>
               </div>
             </div>

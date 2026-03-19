@@ -5,7 +5,7 @@ export default function GrowthBanner({ growth, projections }) {
 
   if (!growth || growth.monthCount < 2) return null
 
-  const { growthPct, firstMonthLeads, peakMonthLeads, peakMonth, totalLeads, monthCount, firstMonth } = growth
+  const { firstMonthLeads, peakMonthLeads, peakMonth, totalLeads, monthCount, firstMonth } = growth
 
   const stats = [
     {
@@ -19,18 +19,6 @@ export default function GrowthBanner({ growth, projections }) {
         </svg>
       ),
       explain: 'Total number of positive responses received across all campaign months.',
-    },
-    {
-      value: `${firstMonthLeads} → ${peakMonthLeads}`,
-      label: `${firstMonth} to ${peakMonth}`,
-      color: '#3B82F6',
-      accent: '#3B82F6',
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
-        </svg>
-      ),
-      explain: 'Shows how monthly leads grew from the first month to the peak month.',
     },
     {
       value: monthCount,
@@ -83,17 +71,22 @@ export default function GrowthBanner({ growth, projections }) {
         pointerEvents: 'none',
       }} />
 
-      {/* Top row: growth % + info button */}
+      {/* Top row: before → after + info button */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
-        <div style={{ textAlign: 'center', minWidth: '140px' }}>
-          <p style={{
-            fontSize: '52px', fontWeight: 800, color: '#10B981',
-            lineHeight: 1, margin: '0 0 6px', letterSpacing: '-2px',
-          }}>
-            +{growthPct}%
-          </p>
-          <p style={{ color: '#525252', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600, margin: 0 }}>
-            Growth since {firstMonth}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+            <span style={{ fontSize: '42px', fontWeight: 800, color: '#525252', lineHeight: 1, letterSpacing: '-1.5px' }}>
+              {firstMonthLeads}
+            </span>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '2px' }}>
+              <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+            </svg>
+            <span style={{ fontSize: '52px', fontWeight: 800, color: '#10B981', lineHeight: 1, letterSpacing: '-2px' }}>
+              {peakMonthLeads}
+            </span>
+          </div>
+          <p style={{ color: '#525252', fontSize: '12px', fontWeight: 600, margin: '8px 0 0', letterSpacing: '0.3px' }}>
+            leads per month · from <strong style={{ color: '#A3A3A3' }}>{firstMonth}</strong> to <strong style={{ color: '#A3A3A3' }}>{peakMonth}</strong>
           </p>
         </div>
 
@@ -159,7 +152,7 @@ export default function GrowthBanner({ growth, projections }) {
               {stat.label}
             </p>
 
-            {/* Explanation tooltip */}
+            {/* Explanation */}
             {showExplain && (
               <p style={{
                 marginTop: '10px', paddingTop: '10px',
@@ -184,10 +177,9 @@ export default function GrowthBanner({ growth, projections }) {
           Consistent upward trajectory
         </p>
         <p style={{ color: '#A3A3A3', fontSize: '13px', margin: 0, lineHeight: 1.6 }}>
-          Campaign performance has grown <strong style={{ color: '#fff' }}>+{growthPct}%</strong> from
-          {' '}<strong style={{ color: '#fff' }}>{firstMonthLeads}</strong> leads in {firstMonth} to
-          {' '}<strong style={{ color: '#fff' }}>{peakMonthLeads}</strong> at peak ({peakMonth}).
-          {' '}The pipeline is compounding — each month builds on the momentum of the previous one.
+          The campaign started with <strong style={{ color: '#fff' }}>{firstMonthLeads}</strong> leads in {firstMonth} and
+          {' '}scaled to <strong style={{ color: '#fff' }}>{peakMonthLeads}</strong> at peak ({peakMonth}) —
+          {' '}the pipeline is compounding, each month builds on the momentum of the previous one.
         </p>
       </div>
     </div>

@@ -13,59 +13,58 @@ export default function MonthlyTrendsChart({ data }) {
   })
 
   return (
-    <div className="glass" style={{ padding: '28px' }}>
-      <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 4px', color: '#fff', letterSpacing: '-0.3px' }}>
+    <div style={{ background: '#FFFFFF', border: '1px solid #E8E4DE', borderRadius: '16px', padding: '28px' }}>
+      <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 4px', color: '#2D2A26', letterSpacing: '-0.3px', fontFamily: "'Fraunces', Georgia, serif" }}>
         Lead Trend
       </h2>
-      <p style={{ color: '#525252', fontSize: '13px', margin: '0 0 20px' }}>
+      <p style={{ color: '#8A8580', fontSize: '13px', margin: '0 0 20px', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
         Monthly lead count and daily pace over time
       </p>
       <ResponsiveContainer width="100%" height={280}>
         <LineChart data={chartData} margin={{ top: 5, right: 24, left: -15, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-          <XAxis dataKey="month" tick={{ fill: '#525252', fontSize: 12 }} axisLine={false} tickLine={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#F0ECE6" vertical={false} />
+          <XAxis dataKey="month" tick={{ fill: '#8A8580', fontSize: 12 }} axisLine={false} tickLine={false} />
           <YAxis
             yAxisId="left"
-            tick={{ fill: '#525252', fontSize: 11 }}
+            tick={{ fill: '#8A8580', fontSize: 11 }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
             yAxisId="right"
             orientation="right"
-            tick={{ fill: '#525252', fontSize: 11 }}
+            tick={{ fill: '#8A8580', fontSize: 11 }}
             axisLine={false}
             tickLine={false}
           />
           <Tooltip
             contentStyle={{
-              background: 'rgba(15,15,23,0.95)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255,255,255,0.08)',
+              background: '#FFFFFF',
+              border: '1px solid #E8E4DE',
               borderRadius: '12px', fontSize: '13px',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
             }}
-            labelStyle={{ color: '#fff', fontWeight: 600 }}
-            itemStyle={{ color: '#A3A3A3' }}
+            labelStyle={{ color: '#2D2A26', fontWeight: 600 }}
+            itemStyle={{ color: '#8A8580' }}
             formatter={(value, name) => [
               name === 'Leads/Day' ? value.toFixed(2) : value,
               name,
             ]}
           />
-          <Legend formatter={val => <span style={{ color: '#525252', fontSize: '12px' }}>{val}</span>} />
+          <Legend formatter={val => <span style={{ color: '#8A8580', fontSize: '12px' }}>{val}</span>} />
           <Line
             yAxisId="left"
             type="monotone"
             dataKey="leads"
             name="Leads"
-            stroke="#3B82F6"
+            stroke="#C2653C"
             strokeWidth={2.5}
-            dot={{ fill: '#3B82F6', r: 4, strokeWidth: 0 }}
-            activeDot={{ r: 6, fill: '#fff', stroke: '#3B82F6', strokeWidth: 2 }}
+            dot={{ fill: '#C2653C', r: 4, strokeWidth: 0 }}
+            activeDot={{ r: 6, fill: '#FFFFFF', stroke: '#C2653C', strokeWidth: 2 }}
             label={({ x, y, index }) => {
               const label = chartData[index]?.growthLabel
               if (!label) return null
-              const color = label.startsWith('+') ? '#10B981' : '#EF4444'
+              const color = label.startsWith('+') ? '#4A7C59' : '#B85450'
               return (
                 <text x={x} y={y - 14} textAnchor="middle" fill={color} fontSize={11} fontWeight={700}>
                   {label}
@@ -78,11 +77,11 @@ export default function MonthlyTrendsChart({ data }) {
             type="monotone"
             dataKey="leadsPerDay"
             name="Leads/Day"
-            stroke="#10B981"
+            stroke="#4A7C59"
             strokeWidth={2}
             strokeDasharray="6 4"
-            dot={{ fill: '#10B981', r: 3, strokeWidth: 0 }}
-            activeDot={{ r: 5, fill: '#fff', stroke: '#10B981', strokeWidth: 2 }}
+            dot={{ fill: '#4A7C59', r: 3, strokeWidth: 0 }}
+            activeDot={{ r: 5, fill: '#FFFFFF', stroke: '#4A7C59', strokeWidth: 2 }}
           />
         </LineChart>
       </ResponsiveContainer>

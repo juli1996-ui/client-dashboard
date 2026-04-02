@@ -27,8 +27,8 @@ export default function CampaignHighlights({ highlights, growth, projections, re
 
   const tipBtnStyle = (id) => ({
     width: '28px', height: '28px', borderRadius: '50%',
-    background: openTip === id ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.08)',
-    border: `1px solid ${openTip === id ? 'rgba(59,130,246,0.4)' : 'rgba(255,255,255,0.12)'}`,
+    background: openTip === id ? 'rgba(194,101,60,0.08)' : '#FAF8F5',
+    border: `1px solid ${openTip === id ? 'rgba(194,101,60,0.2)' : '#E8E4DE'}`,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     cursor: 'pointer', flexShrink: 0, padding: 0,
     transition: 'all 0.2s ease',
@@ -36,8 +36,8 @@ export default function CampaignHighlights({ highlights, growth, projections, re
 
   const tipBoxStyle = {
     marginTop: '14px', padding: '12px 16px', borderRadius: '10px',
-    background: 'rgba(59,130,246,0.04)', border: '1px solid rgba(59,130,246,0.1)',
-    color: '#A3A3A3', fontSize: '12px', lineHeight: 1.6,
+    background: 'rgba(194,101,60,0.08)', border: '1px solid rgba(194,101,60,0.12)',
+    color: '#8A8580', fontSize: '12px', lineHeight: 1.6,
   }
 
   const toggle = (id) => setOpenTip(openTip === id ? null : id)
@@ -50,19 +50,19 @@ export default function CampaignHighlights({ highlights, growth, projections, re
 
         {/* Lead Velocity */}
         {hasVelocity && (
-          <div className="glass" style={{ padding: '24px', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ background: '#FFFFFF', border: '1px solid #E8E4DE', borderRadius: '16px', boxShadow: '0 1px 3px rgba(45,42,38,0.04)', padding: '24px', position: 'relative', overflow: 'hidden' }}>
             <div style={{
               position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
-              background: 'linear-gradient(90deg, transparent, #10B981, transparent)',
+              background: 'linear-gradient(90deg, transparent, #4A7C59, transparent)',
               opacity: 0.5,
             }} />
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
               <div style={{
                 width: '48px', height: '48px', borderRadius: '14px',
-                background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)',
+                background: 'rgba(74,124,89,0.08)', border: '1px solid rgba(74,124,89,0.15)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4A7C59" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
                 </svg>
               </div>
@@ -70,26 +70,26 @@ export default function CampaignHighlights({ highlights, growth, projections, re
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                      <span style={{ fontSize: '36px', fontWeight: 800, color: '#10B981', lineHeight: 1, letterSpacing: '-1.5px' }}>
+                      <span style={{ fontSize: '36px', fontWeight: 800, color: '#4A7C59', lineHeight: 1, letterSpacing: '-1.5px' }}>
                         {velocityMultiplier}x
                       </span>
-                      <span style={{ fontSize: '13px', color: '#A3A3A3', fontWeight: 500 }}>
+                      <span style={{ fontSize: '13px', color: '#8A8580', fontWeight: 500 }}>
                         faster
                       </span>
                     </div>
-                    <p style={{ color: '#525252', fontSize: '13px', margin: '4px 0 0' }}>
-                      Generating leads <strong style={{ color: '#A3A3A3' }}>{velocityMultiplier}x faster</strong> than the first month of the campaign
+                    <p style={{ color: '#B5B0AA', fontSize: '13px', margin: '4px 0 0' }}>
+                      Generating leads <strong style={{ color: '#8A8580' }}>{velocityMultiplier}x faster</strong> than the first month of the campaign
                     </p>
                   </div>
                   <button onClick={() => toggle('velocity')} style={tipBtnStyle('velocity')}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={openTip === 'velocity' ? '#3B82F6' : '#A3A3A3'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={openTip === 'velocity' ? '#C2653C' : '#8A8580'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
                     </svg>
                   </button>
                 </div>
                 {openTip === 'velocity' && (
                   <div style={tipBoxStyle}>
-                    Compares the current month's daily lead rate against the first month of the campaign. A <strong style={{ color: '#fff' }}>{velocityMultiplier}x</strong> multiplier means
+                    Compares the current month's daily lead rate against the first month of the campaign. A <strong style={{ color: '#2D2A26' }}>{velocityMultiplier}x</strong> multiplier means
                     {' '}the campaign is now producing leads {velocityMultiplier} times faster than when it started — a sign that outreach is warming up and targeting is improving over time.
                   </div>
                 )}
@@ -100,19 +100,19 @@ export default function CampaignHighlights({ highlights, growth, projections, re
 
         {/* High Intent % */}
         {hasIntent && (
-          <div className="glass" style={{ padding: '24px', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ background: '#FFFFFF', border: '1px solid #E8E4DE', borderRadius: '16px', boxShadow: '0 1px 3px rgba(45,42,38,0.04)', padding: '24px', position: 'relative', overflow: 'hidden' }}>
             <div style={{
               position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
-              background: 'linear-gradient(90deg, transparent, #F59E0B, transparent)',
+              background: 'linear-gradient(90deg, transparent, #B8860B, transparent)',
               opacity: 0.5,
             }} />
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
               <div style={{
                 width: '48px', height: '48px', borderRadius: '14px',
-                background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.15)',
+                background: 'rgba(184,134,11,0.08)', border: '1px solid rgba(184,134,11,0.15)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B8860B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z"/>
                 </svg>
               </div>
@@ -120,31 +120,31 @@ export default function CampaignHighlights({ highlights, growth, projections, re
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                      <span style={{ fontSize: '36px', fontWeight: 800, color: '#F59E0B', lineHeight: 1, letterSpacing: '-1.5px' }}>
+                      <span style={{ fontSize: '36px', fontWeight: 800, color: '#B8860B', lineHeight: 1, letterSpacing: '-1.5px' }}>
                         {highIntentPct}%
                       </span>
-                      <span style={{ fontSize: '13px', color: '#A3A3A3', fontWeight: 500 }}>
+                      <span style={{ fontSize: '13px', color: '#8A8580', fontWeight: 500 }}>
                         high intent
                       </span>
                     </div>
-                    <p style={{ color: '#525252', fontSize: '13px', margin: '4px 0 0' }}>
+                    <p style={{ color: '#B5B0AA', fontSize: '13px', margin: '4px 0 0' }}>
                       {highIntentPct >= 70
-                        ? <>Exceptional quality — <strong style={{ color: '#A3A3A3' }}>most campaigns average 40-60%</strong></>
+                        ? <>Exceptional quality — <strong style={{ color: '#8A8580' }}>most campaigns average 40-60%</strong></>
                         : highIntentPct >= 50
-                        ? <>Above average — <strong style={{ color: '#A3A3A3' }}>targeting is resonating well</strong></>
+                        ? <>Above average — <strong style={{ color: '#8A8580' }}>targeting is resonating well</strong></>
                         : <>Interested, meetings, and forwarded responses</>
                       }
                     </p>
                   </div>
                   <button onClick={() => toggle('intent')} style={tipBtnStyle('intent')}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={openTip === 'intent' ? '#3B82F6' : '#A3A3A3'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={openTip === 'intent' ? '#C2653C' : '#8A8580'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
                     </svg>
                   </button>
                 </div>
                 {openTip === 'intent' && (
                   <div style={tipBoxStyle}>
-                    Percentage of all responses classified as high intent — this includes <strong style={{ color: '#fff' }}>Interested</strong>, <strong style={{ color: '#fff' }}>Meeting Requests</strong>, and <strong style={{ color: '#fff' }}>Forwarded</strong> replies.
+                    Percentage of all responses classified as high intent — this includes <strong style={{ color: '#2D2A26' }}>Interested</strong>, <strong style={{ color: '#2D2A26' }}>Meeting Requests</strong>, and <strong style={{ color: '#2D2A26' }}>Forwarded</strong> replies.
                     {' '}These are leads actively engaging with the outreach, not just opening emails. A higher percentage means the targeting and messaging are reaching the right people.
                   </div>
                 )}
@@ -159,27 +159,27 @@ export default function CampaignHighlights({ highlights, growth, projections, re
 
         {/* Monthly Pace */}
         {hasPace && (
-          <div className="glass" style={{ padding: '24px' }}>
+          <div style={{ background: '#FFFFFF', border: '1px solid #E8E4DE', borderRadius: '16px', boxShadow: '0 1px 3px rgba(45,42,38,0.04)', padding: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{
                   width: '32px', height: '32px', borderRadius: '8px',
-                  background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.15)',
+                  background: 'rgba(194,101,60,0.08)', border: '1px solid rgba(194,101,60,0.15)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C2653C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                   </svg>
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#fff', margin: 0, letterSpacing: '-0.2px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#2D2A26', margin: 0, letterSpacing: '-0.2px' }}>
                     Monthly Pace
                   </h3>
-                  <p style={{ fontSize: '12px', color: '#525252', margin: 0 }}>Current vs previous month</p>
+                  <p style={{ fontSize: '12px', color: '#B5B0AA', margin: 0 }}>Current vs previous month</p>
                 </div>
               </div>
               <button onClick={() => toggle('pace')} style={tipBtnStyle('pace')}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={openTip === 'pace' ? '#3B82F6' : '#A3A3A3'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={openTip === 'pace' ? '#C2653C' : '#8A8580'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
                 </svg>
               </button>
@@ -187,7 +187,7 @@ export default function CampaignHighlights({ highlights, growth, projections, re
 
             {openTip === 'pace' && (
               <div style={{ ...tipBoxStyle, marginTop: 0, marginBottom: '16px' }}>
-                Shows how many leads per day the campaign is generating <strong style={{ color: '#fff' }}>this month</strong> compared to <strong style={{ color: '#fff' }}>last month</strong>.
+                Shows how many leads per day the campaign is generating <strong style={{ color: '#2D2A26' }}>this month</strong> compared to <strong style={{ color: '#2D2A26' }}>last month</strong>.
                 {' '}The percentage change tells you if the campaign is accelerating or slowing down. A positive trend means the outreach is gaining traction.
               </div>
             )}
@@ -197,18 +197,18 @@ export default function CampaignHighlights({ highlights, growth, projections, re
               {/* Current */}
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '13px', color: '#fff', fontWeight: 600 }}>
+                  <span style={{ fontSize: '13px', color: '#2D2A26', fontWeight: 600 }}>
                     {projections.currentMonthLabel} — now
                   </span>
-                  <span style={{ fontSize: '13px', color: '#3B82F6', fontWeight: 700 }}>
+                  <span style={{ fontSize: '13px', color: '#C2653C', fontWeight: 700 }}>
                     {currentRate.toFixed(1)}/day
                   </span>
                 </div>
-                <div style={{ height: '8px', background: 'rgba(255,255,255,0.04)', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{ height: '8px', background: '#FAF8F5', borderRadius: '4px', overflow: 'hidden' }}>
                   <div style={{
                     width: `${Math.min(100, prevRate > 0 ? Math.round((currentRate / Math.max(currentRate, prevRate)) * 100) : 100)}%`,
                     height: '100%',
-                    background: 'linear-gradient(90deg, rgba(59,130,246,0.3), #3B82F6)',
+                    background: 'linear-gradient(90deg, rgba(194,101,60,0.3), #C2653C)',
                     borderRadius: '4px',
                     transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
                   }} />
@@ -219,18 +219,18 @@ export default function CampaignHighlights({ highlights, growth, projections, re
               {prevRate > 0 && (
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '13px', color: '#A3A3A3' }}>
+                    <span style={{ fontSize: '13px', color: '#8A8580' }}>
                       Last month
                     </span>
-                    <span style={{ fontSize: '13px', color: '#525252', fontWeight: 600 }}>
+                    <span style={{ fontSize: '13px', color: '#B5B0AA', fontWeight: 600 }}>
                       {prevRate.toFixed(1)}/day
                     </span>
                   </div>
-                  <div style={{ height: '8px', background: 'rgba(255,255,255,0.04)', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ height: '8px', background: '#FAF8F5', borderRadius: '4px', overflow: 'hidden' }}>
                     <div style={{
                       width: `${Math.round((prevRate / Math.max(currentRate, prevRate)) * 100)}%`,
                       height: '100%',
-                      background: 'rgba(255,255,255,0.1)',
+                      background: '#E8E4DE',
                       borderRadius: '4px',
                       transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
                     }} />
@@ -243,17 +243,17 @@ export default function CampaignHighlights({ highlights, growth, projections, re
                 <div style={{
                   display: 'inline-flex', alignItems: 'center', gap: '6px',
                   padding: '6px 12px', borderRadius: '8px',
-                  background: paceUp ? 'rgba(16,185,129,0.06)' : 'rgba(239,68,68,0.06)',
-                  border: `1px solid ${paceUp ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)'}`,
+                  background: paceUp ? 'rgba(74,124,89,0.08)' : 'rgba(184,84,80,0.08)',
+                  border: `1px solid ${paceUp ? 'rgba(74,124,89,0.12)' : 'rgba(184,84,80,0.12)'}`,
                   alignSelf: 'flex-start',
                 }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={paceUp ? '#10B981' : '#EF4444'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={paceUp ? '#4A7C59' : '#B85450'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     {paceUp
                       ? <><polyline points="18 15 12 9 6 15"/></>
                       : <><polyline points="6 9 12 15 18 9"/></>
                     }
                   </svg>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: paceUp ? '#10B981' : '#EF4444' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: paceUp ? '#4A7C59' : '#B85450' }}>
                     {paceUp ? '+' : ''}{paceChange}% vs last month
                   </span>
                 </div>
@@ -264,27 +264,27 @@ export default function CampaignHighlights({ highlights, growth, projections, re
 
         {/* Response Breakdown */}
         {hasReplyTypes && (
-          <div className="glass" style={{ padding: '24px' }}>
+          <div style={{ background: '#FFFFFF', border: '1px solid #E8E4DE', borderRadius: '16px', boxShadow: '0 1px 3px rgba(45,42,38,0.04)', padding: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{
                   width: '32px', height: '32px', borderRadius: '8px',
-                  background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.15)',
+                  background: 'rgba(184,134,11,0.08)', border: '1px solid rgba(184,134,11,0.15)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B8860B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
                   </svg>
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#fff', margin: 0, letterSpacing: '-0.2px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#2D2A26', margin: 0, letterSpacing: '-0.2px' }}>
                     Response Breakdown
                   </h3>
-                  <p style={{ fontSize: '12px', color: '#525252', margin: 0 }}>How leads are engaging</p>
+                  <p style={{ fontSize: '12px', color: '#B5B0AA', margin: 0 }}>How leads are engaging</p>
                 </div>
               </div>
               <button onClick={() => toggle('replies')} style={tipBtnStyle('replies')}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={openTip === 'replies' ? '#3B82F6' : '#A3A3A3'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={openTip === 'replies' ? '#C2653C' : '#8A8580'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
                 </svg>
               </button>
@@ -292,8 +292,8 @@ export default function CampaignHighlights({ highlights, growth, projections, re
 
             {openTip === 'replies' && (
               <div style={{ ...tipBoxStyle, marginTop: 0, marginBottom: '16px' }}>
-                Breaks down all positive responses by type. <strong style={{ color: '#10B981' }}>Interested</strong> means the lead expressed interest. <strong style={{ color: '#3B82F6' }}>Meeting Request</strong> means they want to schedule a call.
-                {' '}<strong style={{ color: '#F59E0B' }}>Forwarded</strong> means they passed the email to a decision-maker — often the most valuable response type. The bars show relative volume and the percentage of the total.
+                Breaks down all positive responses by type. <strong style={{ color: '#4A7C59' }}>Interested</strong> means the lead expressed interest. <strong style={{ color: '#C2653C' }}>Meeting Request</strong> means they want to schedule a call.
+                {' '}<strong style={{ color: '#B8860B' }}>Forwarded</strong> means they passed the email to a decision-maker — often the most valuable response type. The bars show relative volume and the percentage of the total.
               </div>
             )}
 
@@ -304,14 +304,14 @@ export default function CampaignHighlights({ highlights, growth, projections, re
                 return (
                   <div key={type.name}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span style={{ fontSize: '13px', color: '#A3A3A3', fontWeight: 500 }}>
+                      <span style={{ fontSize: '13px', color: '#8A8580', fontWeight: 500 }}>
                         {type.name}
                       </span>
                       <span style={{ fontSize: '12px', fontWeight: 700, color: type.color }}>
-                        {type.value} <span style={{ color: '#525252', fontWeight: 400 }}>({pct}%)</span>
+                        {type.value} <span style={{ color: '#B5B0AA', fontWeight: 400 }}>({pct}%)</span>
                       </span>
                     </div>
-                    <div style={{ height: '6px', background: 'rgba(255,255,255,0.04)', borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{ height: '6px', background: '#FAF8F5', borderRadius: '3px', overflow: 'hidden' }}>
                       <div style={{
                         width: `${barWidth}%`,
                         height: '100%',

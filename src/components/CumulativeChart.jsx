@@ -10,11 +10,11 @@ export default function CumulativeChart({ data }) {
   }))
 
   return (
-    <div className="glass" style={{ padding: '28px' }}>
-      <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 4px', color: '#fff', letterSpacing: '-0.3px' }}>
+    <div style={{ background: '#FFFFFF', border: '1px solid #E8E4DE', borderRadius: '16px', padding: '28px' }}>
+      <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 4px', color: '#2D2A26', letterSpacing: '-0.3px', fontFamily: "'Fraunces', Georgia, serif" }}>
         Cumulative Growth
       </h2>
-      <p style={{ color: '#525252', fontSize: '13px', margin: '0 0 20px' }}>
+      <p style={{ color: '#8A8580', fontSize: '13px', margin: '0 0 20px', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
         Total positive responses over time — showing compounding pipeline momentum
       </p>
 
@@ -22,22 +22,21 @@ export default function CumulativeChart({ data }) {
         <AreaChart data={chartData} margin={{ top: 5, right: 24, left: -15, bottom: 5 }}>
           <defs>
             <linearGradient id="cumulativeGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#10B981" stopOpacity={0.2} />
-              <stop offset="95%" stopColor="#10B981" stopOpacity={0.01} />
+              <stop offset="0%" stopColor="#C2653C" stopOpacity={0.2} />
+              <stop offset="95%" stopColor="#C2653C" stopOpacity={0.01} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-          <XAxis dataKey="month" tick={{ fill: '#525252', fontSize: 12 }} axisLine={false} tickLine={false} />
-          <YAxis tick={{ fill: '#525252', fontSize: 11 }} axisLine={false} tickLine={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#F0ECE6" vertical={false} />
+          <XAxis dataKey="month" tick={{ fill: '#8A8580', fontSize: 12 }} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fill: '#8A8580', fontSize: 11 }} axisLine={false} tickLine={false} />
           <Tooltip
             contentStyle={{
-              background: 'rgba(15,15,23,0.95)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255,255,255,0.08)',
+              background: '#FFFFFF',
+              border: '1px solid #E8E4DE',
               borderRadius: '12px', fontSize: '13px',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
             }}
-            labelStyle={{ color: '#fff', fontWeight: 600 }}
+            labelStyle={{ color: '#2D2A26', fontWeight: 600 }}
             formatter={(value, name) => [
               value,
               name === 'cumulative' ? 'Total Leads' : 'New This Month',
@@ -46,11 +45,11 @@ export default function CumulativeChart({ data }) {
           <Area
             type="monotone"
             dataKey="cumulative"
-            stroke="#10B981"
+            stroke="#C2653C"
             strokeWidth={2.5}
             fill="url(#cumulativeGradient)"
-            dot={{ fill: '#10B981', r: 4, strokeWidth: 0 }}
-            activeDot={{ r: 6, fill: '#fff', stroke: '#10B981', strokeWidth: 2 }}
+            dot={{ fill: '#C2653C', r: 4, strokeWidth: 0 }}
+            activeDot={{ r: 6, fill: '#FFFFFF', stroke: '#C2653C', strokeWidth: 2 }}
           />
         </AreaChart>
       </ResponsiveContainer>
@@ -61,13 +60,13 @@ export default function CumulativeChart({ data }) {
           <div key={d.month} style={{
             display: 'flex', alignItems: 'center', gap: '6px',
             padding: '5px 12px', borderRadius: '20px',
-            background: i === chartData.length - 1 ? 'rgba(16,185,129,0.08)' : 'rgba(255,255,255,0.03)',
-            border: `1px solid ${i === chartData.length - 1 ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.04)'}`,
+            background: i === chartData.length - 1 ? 'rgba(74,124,89,0.08)' : '#FAF8F5',
+            border: `1px solid ${i === chartData.length - 1 ? 'rgba(74,124,89,0.2)' : '#F0ECE6'}`,
           }}>
-            <span style={{ fontSize: '12px', color: '#525252', fontWeight: 500 }}>{d.month}</span>
+            <span style={{ fontSize: '12px', color: '#8A8580', fontWeight: 500 }}>{d.month}</span>
             <span style={{
               fontSize: '13px', fontWeight: 700,
-              color: i === chartData.length - 1 ? '#10B981' : '#fff',
+              color: i === chartData.length - 1 ? '#4A7C59' : '#2D2A26',
             }}>
               {d.cumulative}
             </span>

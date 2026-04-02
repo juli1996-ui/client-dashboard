@@ -11,10 +11,10 @@ export default function GrowthBanner({ growth, projections }) {
     {
       value: totalLeads,
       label: 'Total Responses',
-      color: '#fff',
-      accent: '#10B981',
+      color: '#2D2A26',
+      accent: '#4A7C59',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A7C59" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
         </svg>
       ),
@@ -23,10 +23,10 @@ export default function GrowthBanner({ growth, projections }) {
     {
       value: monthCount,
       label: 'Active Months',
-      color: '#8B5CF6',
-      accent: '#8B5CF6',
+      color: '#B8860B',
+      accent: '#B8860B',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B8860B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
         </svg>
       ),
@@ -35,10 +35,10 @@ export default function GrowthBanner({ growth, projections }) {
     ...(projections?.leadsProjected > 0 ? [{
       value: projections.leadsProjected,
       label: `${projections.currentMonthLabel} Projected`,
-      color: '#F59E0B',
-      accent: '#F59E0B',
+      color: '#C2653C',
+      accent: '#C2653C',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C2653C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
         </svg>
       ),
@@ -48,10 +48,8 @@ export default function GrowthBanner({ growth, projections }) {
 
   return (
     <div style={{
-      background: 'linear-gradient(135deg, rgba(16,185,129,0.06) 0%, rgba(59,130,246,0.04) 100%)',
-      backdropFilter: 'blur(12px)',
-      WebkitBackdropFilter: 'blur(12px)',
-      border: '1px solid rgba(16,185,129,0.15)',
+      background: 'linear-gradient(135deg, rgba(194,101,60,0.06) 0%, rgba(74,124,89,0.04) 100%)',
+      border: '1px solid rgba(194,101,60,0.15)',
       borderRadius: '20px',
       padding: '28px 32px',
       position: 'relative',
@@ -61,32 +59,32 @@ export default function GrowthBanner({ growth, projections }) {
       <div style={{
         position: 'absolute', top: '-60px', right: '-60px',
         width: '200px', height: '200px', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(194,101,60,0.1) 0%, transparent 70%)',
         pointerEvents: 'none',
       }} />
       <div style={{
         position: 'absolute', bottom: '-40px', left: '-40px',
         width: '140px', height: '140px', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(74,124,89,0.06) 0%, transparent 70%)',
         pointerEvents: 'none',
       }} />
 
-      {/* Top row: before → after + info button */}
+      {/* Top row: before -> after + info button */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
-            <span style={{ fontSize: '42px', fontWeight: 800, color: '#525252', lineHeight: 1, letterSpacing: '-1.5px' }}>
+            <span style={{ fontSize: '42px', fontWeight: 800, color: '#8A8580', lineHeight: 1, letterSpacing: '-1.5px' }}>
               {firstMonthLeads}
             </span>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '2px' }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C2653C" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '2px' }}>
               <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
             </svg>
-            <span style={{ fontSize: '52px', fontWeight: 800, color: '#10B981', lineHeight: 1, letterSpacing: '-2px' }}>
+            <span style={{ fontSize: '52px', fontWeight: 800, color: '#C2653C', lineHeight: 1, letterSpacing: '-2px' }}>
               {peakMonthLeads}
             </span>
           </div>
-          <p style={{ color: '#525252', fontSize: '12px', fontWeight: 600, margin: '8px 0 0', letterSpacing: '0.3px' }}>
-            leads per month · from <strong style={{ color: '#A3A3A3' }}>{firstMonth}</strong> to <strong style={{ color: '#A3A3A3' }}>{peakMonth}</strong>
+          <p style={{ color: '#8A8580', fontSize: '12px', fontWeight: 600, margin: '8px 0 0', letterSpacing: '0.3px' }}>
+            leads per month · from <strong style={{ color: '#2D2A26' }}>{firstMonth}</strong> to <strong style={{ color: '#2D2A26' }}>{peakMonth}</strong>
           </p>
         </div>
 
@@ -95,13 +93,13 @@ export default function GrowthBanner({ growth, projections }) {
           onClick={() => setShowExplain(!showExplain)}
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
-            background: showExplain ? 'rgba(59,130,246,0.12)' : 'rgba(255,255,255,0.04)',
-            border: `1px solid ${showExplain ? 'rgba(59,130,246,0.25)' : 'rgba(255,255,255,0.06)'}`,
+            background: showExplain ? 'rgba(194,101,60,0.08)' : '#FAF8F5',
+            border: `1px solid ${showExplain ? 'rgba(194,101,60,0.25)' : '#E8E4DE'}`,
             borderRadius: '10px', padding: '7px 14px',
-            color: showExplain ? '#3B82F6' : '#A3A3A3',
+            color: showExplain ? '#C2653C' : '#8A8580',
             fontSize: '12px', fontWeight: 600, cursor: 'pointer',
             transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-            fontFamily: 'Inter, system-ui, sans-serif',
+            fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
           }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -148,7 +146,7 @@ export default function GrowthBanner({ growth, projections }) {
             }}>
               {stat.value}
             </p>
-            <p style={{ color: '#525252', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1.2px', fontWeight: 600, margin: 0 }}>
+            <p style={{ color: '#8A8580', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1.2px', fontWeight: 600, margin: 0 }}>
               {stat.label}
             </p>
 
@@ -157,7 +155,7 @@ export default function GrowthBanner({ growth, projections }) {
               <p style={{
                 marginTop: '10px', paddingTop: '10px',
                 borderTop: `1px solid ${stat.accent}15`,
-                color: '#A3A3A3', fontSize: '11px', lineHeight: 1.5, margin: '10px 0 0',
+                color: '#8A8580', fontSize: '11px', lineHeight: 1.5, margin: '10px 0 0',
               }}>
                 {stat.explain}
               </p>
@@ -169,16 +167,16 @@ export default function GrowthBanner({ growth, projections }) {
       {/* Bottom insight */}
       <div style={{
         padding: '14px 18px',
-        background: 'rgba(16,185,129,0.04)',
-        border: '1px solid rgba(16,185,129,0.1)',
+        background: 'rgba(74,124,89,0.04)',
+        border: '1px solid rgba(74,124,89,0.1)',
         borderRadius: '12px',
       }}>
-        <p style={{ color: '#10B981', fontSize: '13px', fontWeight: 600, margin: '0 0 4px' }}>
+        <p style={{ color: '#4A7C59', fontSize: '13px', fontWeight: 600, margin: '0 0 4px' }}>
           Consistent upward trajectory
         </p>
-        <p style={{ color: '#A3A3A3', fontSize: '13px', margin: 0, lineHeight: 1.6 }}>
-          The campaign started with <strong style={{ color: '#fff' }}>{firstMonthLeads}</strong> leads in {firstMonth} and
-          {' '}scaled to <strong style={{ color: '#fff' }}>{peakMonthLeads}</strong> at peak ({peakMonth}) —
+        <p style={{ color: '#8A8580', fontSize: '13px', margin: 0, lineHeight: 1.6 }}>
+          The campaign started with <strong style={{ color: '#2D2A26' }}>{firstMonthLeads}</strong> leads in {firstMonth} and
+          {' '}scaled to <strong style={{ color: '#2D2A26' }}>{peakMonthLeads}</strong> at peak ({peakMonth}) —
           {' '}the pipeline is compounding, each month builds on the momentum of the previous one.
         </p>
       </div>

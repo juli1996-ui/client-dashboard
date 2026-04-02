@@ -45,8 +45,8 @@ function App() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0A0A0F', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ width: '40px', height: '40px', border: '2px solid rgba(255,255,255,0.06)', borderTopColor: '#3B82F6', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <div style={{ minHeight: '100vh', background: '#F7F5F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: '40px', height: '40px', border: '2px solid #E8E4DE', borderTopColor: '#C2653C', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
       </div>
     )
   }

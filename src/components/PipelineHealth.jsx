@@ -20,74 +20,74 @@ export default function PipelineHealth({ summary, projections }) {
     {
       value: replyRate != null ? `${replyRate}%` : '—',
       label: 'Reply Rate',
-      color: '#8B5CF6',
+      color: '#C2653C',
       desc: `${replies?.toLocaleString() ?? '—'} replies from ${emailsSent?.toLocaleString() ?? '—'} emails. Industry benchmark: 0.5–1%`,
     },
     {
       value: replyOppPct != null ? `${replyOppPct}%` : '—',
       label: 'Reply → Opportunity',
-      color: '#10B981',
+      color: '#4A7C59',
       desc: `Nearly 1 in ${replyOppPct ? Math.round(100 / parseFloat(replyOppPct)) : '?'} replies becomes a qualified opportunity`,
     },
     {
       value: oppMeetingPct != null ? `${oppMeetingPct}%` : '—',
       label: 'Opp → Meeting',
-      color: '#F59E0B',
+      color: '#B8860B',
       desc: `${meetingsScheduled ?? '—'} meeting requests from ${opportunities ?? '—'} opportunities`,
     },
     {
       value: leadsToNext != null ? `~${leadsToNext}` : '—',
       label: 'Leads to Next Meeting',
-      color: '#3B82F6',
+      color: '#C2653C',
       desc: `Estimated leads needed until the next meeting request at current conversion rate`,
     },
     {
       value: emailsPerOpp != null ? emailsPerOpp.toLocaleString() : '—',
       label: 'Emails / Opportunity',
-      color: '#14B8A6',
+      color: '#8A8580',
       desc: `Cost to generate 1 qualified lead. Use this to plan list size for target outcomes`,
     },
     {
       value: marchMeetings != null ? `~${marchMeetings}` : '—',
       label: 'Projected March Meetings',
-      color: '#10B981',
+      color: '#4A7C59',
       desc: `Estimated meeting requests in March based on forecasted leads × ${(meetingConvRate * 100).toFixed(0)}% conversion`,
     },
   ]
 
   return (
-    <div className="glass" style={{ padding: '28px' }}>
+    <div style={{ background: '#FFFFFF', border: '1px solid #E8E4DE', borderRadius: '16px', boxShadow: '0 1px 3px rgba(45,42,38,0.04)', padding: '28px' }}>
       <div style={{
         display: 'inline-flex', alignItems: 'center', gap: '6px',
-        background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.12)',
+        background: 'rgba(184,134,11,0.08)', border: '1px solid rgba(184,134,11,0.12)',
         borderRadius: '8px', padding: '4px 12px',
-        fontSize: '11px', color: '#F59E0B', fontWeight: 600, marginBottom: '18px',
+        fontSize: '11px', color: '#B8860B', fontWeight: 600, marginBottom: '18px',
       }}>
         ⚡ Instantly + live sheet data
       </div>
 
-      <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#fff', marginBottom: '4px', letterSpacing: '-0.3px' }}>
+      <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#2D2A26', marginBottom: '4px', letterSpacing: '-0.3px' }}>
         Pipeline Health
       </h2>
-      <p style={{ color: '#525252', fontSize: '13px', marginBottom: '24px' }}>
+      <p style={{ color: '#B5B0AA', fontSize: '13px', marginBottom: '24px' }}>
         Key conversion metrics across the full outreach funnel
       </p>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
         {metrics.map(m => (
           <div key={m.label} style={{
-            background: 'rgba(255,255,255,0.02)',
-            border: '1px solid rgba(255,255,255,0.04)',
+            background: '#FAF8F5',
+            border: '1px solid #F0ECE6',
             borderRadius: '14px', padding: '18px 16px', textAlign: 'center',
             transition: 'all 0.2s',
           }}>
             <div style={{ fontSize: '26px', fontWeight: 800, color: m.color, letterSpacing: '-0.5px' }}>
               {m.value}
             </div>
-            <div style={{ fontSize: '10px', color: '#525252', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600, marginTop: '4px' }}>
+            <div style={{ fontSize: '10px', color: '#B5B0AA', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600, marginTop: '4px' }}>
               {m.label}
             </div>
-            <div style={{ fontSize: '11px', color: '#A3A3A3', marginTop: '8px', lineHeight: 1.5 }}>
+            <div style={{ fontSize: '11px', color: '#8A8580', marginTop: '8px', lineHeight: 1.5 }}>
               {m.desc}
             </div>
           </div>

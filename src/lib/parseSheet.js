@@ -306,17 +306,66 @@ function calculateMetrics(rows) {
     }
   }
 
-  // "What if campaign continued" projection for full month at the active daily rate
-  const leadsIfFullMonth = Math.round(dailyRate * daysInCurrentMonth)
-  const leadsProjected = Math.round(currentMonthLeads + dailyRate * daysLeft)
+  // ── Growth-adjusted projection ──────────────────────────────
+  // Calculate month-over-month growth in daily rate to project forward
+  const pastYMs = sortedYMs.filter(ym => ym < currentYM)
+  let growthMultiplier = 1.0
+  if (pastYMs.length >= 2) {
+    // Compute daily rates for the last 2-3 completed months to find growth trend
+    const recentYMs = pastYMs.slice(-3)
+    const recentRates = recentYMs.map(ym => {
+      const leads = byYM[ym] || 0
+      const [y, m] = ym.split('-').map(Number)
+      const daysInMo = new Date(y, m, 0).getDate()
+      const ymDates = rows
+        .filter(r => r._ym === ym)
+        .map(r => { const d = parseDate(r._date); return d ? parseInt(d.day, 10) : 0 })
+        .filter(d => d > 0)
+      const elapsed = ymDates.length > 0 ? Math.max(...ymDates) : daysInMo
+      return elapsed > 0 ? leads / elapsed : 0
+    }).filter(r => r > 0)
+
+    if (recentRates.length >= 2) {
+      // Average month-over-month growth in daily rate
+      const momGrowths = []
+      for (let i = 1; i < recentRates.length; i++) {
+        if (recentRates[i - 1] > 0) {
+          momGrowths.push(recentRates[i] / recentRates[i - 1])
+        }
+      }
+      if (momGrowths.length > 0) {
+        const avgGrowth = momGrowths.reduce((a, b) => a + b, 0) / momGrowths.length
+        // Cap growth multiplier between 1.0 and 1.6 for reasonable projections
+        growthMultiplier = Math.min(1.6, Math.max(1.0, avgGrowth))
+      }
+    }
+  }
+
+  const growthAdjustedRate = dailyRate * growthMultiplier
+  const leadsIfFullMonth = Math.round(growthAdjustedRate * daysInCurrentMonth)
+  const leadsProjected = Math.round(currentMonthLeads + growthAdjustedRate * daysLeft)
   const meetingsProjected = Math.max(
     currentMonthMeetings,
     Math.round(leadsProjected * (meetingsTotal / total || 0.05))
   )
 
-  // Previous month = the most recent month before the current one
-  const prevYM = sortedYMs.filter(ym => ym < currentYM).slice(-1)[0]
-  const prevMonthLeads = prevYM ? (byYM[prevYM] || 0) : 0
+  // Previous month: use projected full month if data is incomplete
+  const prevYM = pastYMs.slice(-1)[0]
+  let prevMonthLeads = prevYM ? (byYM[prevYM] || 0) : 0
+  if (prevYM) {
+    const [py, pm] = prevYM.split('-').map(Number)
+    const daysInPrevMonth = new Date(py, pm, 0).getDate()
+    const prevDates = rows
+      .filter(r => r._ym === prevYM)
+      .map(r => { const d = parseDate(r._date); return d ? parseInt(d.day, 10) : 0 })
+      .filter(d => d > 0)
+    const prevLastDay = prevDates.length > 0 ? Math.max(...prevDates) : daysInPrevMonth
+    // If previous month data covers less than 80% of the month, project it to full month
+    if (prevLastDay < daysInPrevMonth * 0.8) {
+      const prevRate = prevLastDay > 0 ? prevMonthLeads / prevLastDay : 0
+      prevMonthLeads = Math.round(prevRate * daysInPrevMonth)
+    }
+  }
 
   // ── Growth metrics ────────────────────────────────────────
   const firstMonthLeads = monthlyTrends.length > 0 ? monthlyTrends[0].leads : 0
@@ -382,16 +431,16 @@ function calculateMetrics(rows) {
     summary: {
       totalLeads: total,
       leadsToday,
-      leadsPerDay: dailyRate > 0 ? Math.round(dailyRate * 10) / 10 : null,
+      leadsPerDay: dailyRate > 0 ? Math.round(dailyRate * 100) / 100 : null,
       emailsSent: null,   // from Instantly, not in sheet
       responseRate: null, // from Instantly
       meetingsScheduled: meetingsTotal,
     },
     replyTypes: [
-      { name: 'Interested', value: typeCounts['Interested'], color: '#10B981' },
-      { name: 'Meeting Request', value: typeCounts['Meeting Request'], color: '#F59E0B' },
-      { name: 'Forwarded Internally', value: typeCounts['Forwarded Internally'], color: '#8B5CF6' },
-      { name: 'Other', value: typeCounts['Other'], color: '#6B7280' },
+      { name: 'Interested', value: typeCounts['Interested'], color: '#C2653C' },
+      { name: 'Meeting Request', value: typeCounts['Meeting Request'], color: '#4A7C59' },
+      { name: 'Forwarded Internally', value: typeCounts['Forwarded Internally'], color: '#B8860B' },
+      { name: 'Other', value: typeCounts['Other'], color: '#8A8580' },
     ].filter(t => t.value > 0),
     monthlyTrends: monthlyTrendsWithCumulative,
     growth: {
@@ -415,6 +464,7 @@ function calculateMetrics(rows) {
       lastActiveDay,
       daysInMonth: daysInCurrentMonth,
       dailyRate,
+      growthAdjustedRate,
       prevMonthLeads,
       currentYM,
       currentMonthLabel,

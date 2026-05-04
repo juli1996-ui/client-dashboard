@@ -24,17 +24,19 @@ const MONTH_NUM_ES = {
 export default function FeaturedBanner({ monthlyTrends, sinceActivation }) {
   // Mode 1: campaign activation tracking (preferred when configured)
   if (sinceActivation && sinceActivation.total > 0) {
-    const { total, days, activationDay, activationMonth } = sinceActivation
+    const { total, days, firstDay, lastDay, activationDay, activationMonth } = sinceActivation
     const monthName = MONTH_NUM_ES[activationMonth] || ''
     const perDay = (total / days).toFixed(1)
+    const range = (lastDay && lastDay !== firstDay) ? `${firstDay}–${lastDay}` : `${firstDay}`
     return (
       <Banner
         big={total}
-        title={`${total} respuestas positivas desde el ${activationDay} de ${monthName}`}
+        title={`${total} respuestas positivas en ${monthName} desde el ${activationDay} de ${monthName}`}
         body={
           <>Las campañas se activaron el <strong style={{ color: C.accent }}>{activationDay} de {monthName}</strong>.
-          {' '}Acumuladas en <strong style={{ color: C.text }}>{days} {days === 1 ? 'día' : 'días'}</strong> de actividad —
-          {' '}promedio de <strong style={{ color: C.text }}>{perDay} respuestas/día</strong>.</>
+          {' '}Acumuladas en <strong style={{ color: C.text }}>{days} {days === 1 ? 'día' : 'días'}</strong>
+          {' '}({range} de {monthName}) — promedio de
+          {' '}<strong style={{ color: C.text }}>{perDay} respuestas/día</strong>.</>
         }
       />
     )

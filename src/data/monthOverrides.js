@@ -39,8 +39,9 @@ export function applyMonthOverride(monthlyTrends, clientId) {
   })
 }
 
-// Compute totals since the campaign activation date for a given client.
-// Returns null if no activation set or no data after activation.
+// Return the activation-month info for the banner: count of leads in the
+// activation month only (NOT cumulative across months) plus the partial-month
+// active-day window.
 export function computeSinceActivation(monthlyTrends, clientId) {
   const activation = CAMPAIGN_ACTIVATIONS[clientId]
   if (!activation || !monthlyTrends || monthlyTrends.length === 0) return null
@@ -48,29 +49,19 @@ export function computeSinceActivation(monthlyTrends, clientId) {
   const [aYear, aMonth, aDay] = activation.split('-').map(Number)
   const activationYM = `${aYear}-${String(aMonth).padStart(2, '0')}`
 
-  // Sum leads across all months from activation onward
-  let total = 0
-  monthlyTrends.forEach(m => {
-    if (m.ym < activationYM) return
-    if (m.ym === activationYM) {
-      // First month: only count if we have data on/after activation day
-      // (the override's firstDay should already reflect this)
-      total += m.leads
-    } else {
-      total += m.leads
-    }
-  })
+  const activationMonthEntry = monthlyTrends.find(m => m.ym === activationYM)
+  if (!activationMonthEntry || !activationMonthEntry.leads) return null
 
-  if (total === 0) return null
-
-  // Days since activation
-  const today = new Date()
-  const actDate = new Date(aYear, aMonth - 1, aDay)
-  const daysSince = Math.max(1, Math.floor((today - actDate) / (1000 * 60 * 60 * 24)) + 1)
+  const total = activationMonthEntry.leads
+  const firstDay = activationMonthEntry.firstDay || aDay
+  const lastDay = activationMonthEntry.lastDay || activationMonthEntry.days
+  const days = (firstDay && lastDay) ? (lastDay - firstDay + 1) : (activationMonthEntry.activeDays || 1)
 
   return {
     total,
-    days: daysSince,
+    days,
+    firstDay,
+    lastDay,
     activationYM,
     activationMonth: aMonth,
     activationDay: aDay,

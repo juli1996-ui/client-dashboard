@@ -85,10 +85,17 @@ function ExecutiveSummary({ data, projections, monthlyTrends, growth }) {
     growthPct = Math.round(((latestMonthLeads - prevMonthLeads) / prevMonthLeads) * 100)
   }
 
-  // If campaign started mid-month, build a "since Apr 28" suffix
-  const firstActive = projections?.firstActiveDay
-  const partialMonthSuffix = firstActive && firstActive > 1
-    ? ` (since ${projections.currentMonthLabel} ${firstActive})` : ''
+  // If campaign started mid-month, build a "since Apr 28" suffix.
+  // Prefer the per-month firstDay from monthlyTrends (works for past months too).
+  let partialMonthSuffix = ''
+  if (monthlyTrends && monthlyTrends.length > 0) {
+    const last = monthlyTrends[monthlyTrends.length - 1]
+    if (last.firstDay && last.firstDay > 1) {
+      partialMonthSuffix = ` (since ${last.month} ${last.firstDay})`
+    }
+  } else if (projections?.firstActiveDay && projections.firstActiveDay > 1) {
+    partialMonthSuffix = ` (since ${projections.currentMonthLabel} ${projections.firstActiveDay})`
+  }
 
   return (
     <div style={S.card}>
@@ -136,14 +143,19 @@ function KPIStack({ data, projections, monthlyTrends }) {
   const latestMeetings = latestMonth?.meetings || 0
   const latestDays = latestMonth?.days || 30
 
-  // If this is the live current month with a partial start (e.g. April 28), use active days
-  const isCurrentLive = projections?.currentMonthLabel && latestMonth?.month === projections.currentMonthLabel
-  const firstActive = projections?.firstActiveDay
-  const activeDaysCount = (isCurrentLive && projections?.activeDays) ? projections.activeDays : latestDays
+  // If this month started mid-month (e.g. April activity started on the 28),
+  // use the active-day window so the rate reflects the real campaign pace
+  const firstDay = latestMonth?.firstDay
+  const activeDaysCount = (firstDay && firstDay > 1 && latestMonth?.activeDays)
+    ? latestMonth.activeDays : latestDays
   const latestLeadsPerDay = latestLeads > 0 ? (latestLeads / activeDaysCount).toFixed(2) : '—'
-  const partialSuffix = (isCurrentLive && firstActive > 1) ? ` (since ${firstActive})` : ''
+  const partialSuffix = (firstDay && firstDay > 1)
+    ? ` (since ${firstDay})` : ''
 
-  const prevLeadsPerDay = prevMonth ? (prevMonth.leads / (prevMonth.days || 30)) : null
+  const prevFirstDay = prevMonth?.firstDay
+  const prevActiveDaysCount = (prevFirstDay && prevFirstDay > 1 && prevMonth?.activeDays)
+    ? prevMonth.activeDays : (prevMonth?.days || 30)
+  const prevLeadsPerDay = prevMonth ? (prevMonth.leads / prevActiveDaysCount) : null
   const currentLPD = latestLeads / activeDaysCount
   const lpdDiff = prevLeadsPerDay ? (currentLPD - prevLeadsPerDay).toFixed(1) : null
 

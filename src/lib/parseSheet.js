@@ -251,12 +251,25 @@ function calculateMetrics(rows) {
     const mNum = parseInt(monthStr, 10)
     const label = NUM_TO_LABEL[mNum] || ym
     const daysInMonth = new Date(Number(year), mNum, 0).getDate()
+
+    // First/last activity day within this month (for partial-month detection)
+    const ymDays = rows
+      .filter(r => r._ym === ym)
+      .map(r => { const d = parseDate(r._date); return d ? parseInt(d.day, 10) : 0 })
+      .filter(d => d > 0)
+    const firstDay = ymDays.length > 0 ? Math.min(...ymDays) : null
+    const lastDay = ymDays.length > 0 ? Math.max(...ymDays) : null
+    const activeDays = (firstDay && lastDay) ? (lastDay - firstDay + 1) : daysInMonth
+
     return {
-      ym,                        // year-month key for comparison in the component
+      ym,
       month: label,
       leads: byYM[ym],
       meetings: meetingsByYM[ym] || 0,
       days: daysInMonth,
+      firstDay,
+      lastDay,
+      activeDays,
     }
   })
 

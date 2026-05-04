@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { fetchSheetData } from '../lib/parseSheet'
 import { fetchCampaignAnalytics, fetchCampaigns } from '../lib/instantly'
 import ActiveCampaigns from './ActiveCampaigns'
+import FeaturedBanner from './FeaturedBanner'
 import { CAIN_CLIENT_ID, CAIN_CAMPAIGNS } from '../data/cainCampaigns'
 import { applyMonthOverride } from '../data/monthOverrides'
 
@@ -992,6 +993,9 @@ export default function Dashboard({ isAdmin, clientRecord, onLogout }) {
         {/* ═══ DASHBOARD SECTIONS ═══ */}
         {data && !loadingSheet && (
           <>
+            {/* FEATURED BANNER: Latest month positive responses */}
+            <FeaturedBanner monthlyTrends={data.monthlyTrends} />
+
             {/* SECTION 1: Executive Summary (60%) + KPIs (40%) */}
             <div style={S.grid6040}>
               <ExecutiveSummary data={data.summary} projections={data.projections} monthlyTrends={data.monthlyTrends} growth={data.growth} />

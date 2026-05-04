@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { fetchSheetData } from '../lib/parseSheet'
 import { fetchCampaignAnalytics, fetchCampaigns } from '../lib/instantly'
+import ActiveCampaigns from './ActiveCampaigns'
+import { CAIN_CLIENT_ID, CAIN_CAMPAIGNS } from '../data/cainCampaigns'
 
 // ── Color Tokens ───────────────────────────────────────
 const C = {
@@ -966,6 +968,11 @@ export default function Dashboard({ isAdmin, clientRecord, onLogout }) {
               <ExecutiveSummary data={data.summary} projections={data.projections} monthlyTrends={data.monthlyTrends} growth={data.growth} />
               <KPIStack data={data.summary} projections={data.projections} monthlyTrends={data.monthlyTrends} />
             </div>
+
+            {/* Client-specific: Active Campaigns (Cain McQuinley) */}
+            {client?.id === CAIN_CLIENT_ID && (
+              <ActiveCampaigns campaigns={CAIN_CAMPAIGNS} />
+            )}
 
             {/* SECTION 2: Month-over-Month Comparison */}
             {data.monthlyTrends.length >= 2 && (

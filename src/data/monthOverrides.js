@@ -7,13 +7,25 @@
 // and label the month as "(since <firstDay>)".
 
 export const MONTH_OVERRIDES = {
-  // Brian Rechtman — April 2026 activity actually ran Apr 28-30
+  // Brian Rechtman — April 2026 campaigns activated on Apr 28
   'a6f95745-a971-4d0f-87a0-137d16bfd27a': {
+    '2026-04': { firstDay: 28, lastDay: 30 },
+  },
+  // Cain McQuinley — April 2026 campaigns activated on Apr 28
+  '47097ab6-0ca6-49ea-8d94-c8bdf9809048': {
     '2026-04': { firstDay: 28, lastDay: 30 },
   },
 }
 
-// Helper used by parseSheet caller to apply override after parsing
+// Campaign activation date per client. When set, the dashboard banner totals
+// all responses from this date forward (across multiple months) and labels
+// the period as "desde la activación".
+// Format: 'YYYY-MM-DD'
+export const CAMPAIGN_ACTIVATIONS = {
+  'a6f95745-a971-4d0f-87a0-137d16bfd27a': '2026-04-28', // Brian
+  '47097ab6-0ca6-49ea-8d94-c8bdf9809048': '2026-04-28', // Cain
+}
+
 export function applyMonthOverride(monthlyTrends, clientId) {
   if (!clientId || !MONTH_OVERRIDES[clientId]) return monthlyTrends
   const overrides = MONTH_OVERRIDES[clientId]
@@ -25,4 +37,43 @@ export function applyMonthOverride(monthlyTrends, clientId) {
     const activeDays = (firstDay && lastDay) ? (lastDay - firstDay + 1) : m.activeDays
     return { ...m, firstDay, lastDay, activeDays }
   })
+}
+
+// Compute totals since the campaign activation date for a given client.
+// Returns null if no activation set or no data after activation.
+export function computeSinceActivation(monthlyTrends, clientId) {
+  const activation = CAMPAIGN_ACTIVATIONS[clientId]
+  if (!activation || !monthlyTrends || monthlyTrends.length === 0) return null
+
+  const [aYear, aMonth, aDay] = activation.split('-').map(Number)
+  const activationYM = `${aYear}-${String(aMonth).padStart(2, '0')}`
+
+  // Sum leads across all months from activation onward
+  let total = 0
+  monthlyTrends.forEach(m => {
+    if (m.ym < activationYM) return
+    if (m.ym === activationYM) {
+      // First month: only count if we have data on/after activation day
+      // (the override's firstDay should already reflect this)
+      total += m.leads
+    } else {
+      total += m.leads
+    }
+  })
+
+  if (total === 0) return null
+
+  // Days since activation
+  const today = new Date()
+  const actDate = new Date(aYear, aMonth - 1, aDay)
+  const daysSince = Math.max(1, Math.floor((today - actDate) / (1000 * 60 * 60 * 24)) + 1)
+
+  return {
+    total,
+    days: daysSince,
+    activationYM,
+    activationMonth: aMonth,
+    activationDay: aDay,
+    activationYear: aYear,
+  }
 }

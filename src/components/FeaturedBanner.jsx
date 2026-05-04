@@ -5,7 +5,6 @@ const C = {
 }
 const FONT_DISPLAY = "'Fraunces', Georgia, serif"
 
-// Spanish month names for display
 const MONTH_ES = {
   'Enero': 'enero', 'Febrero': 'febrero', 'Marzo': 'marzo',
   'Abril': 'abril', 'Mayo': 'mayo', 'Junio': 'junio',
@@ -17,18 +16,60 @@ const MONTH_ES = {
   'October': 'octubre', 'November': 'noviembre', 'December': 'diciembre',
 }
 
-export default function FeaturedBanner({ monthlyTrends }) {
+const MONTH_NUM_ES = {
+  1: 'enero', 2: 'febrero', 3: 'marzo', 4: 'abril', 5: 'mayo', 6: 'junio',
+  7: 'julio', 8: 'agosto', 9: 'septiembre', 10: 'octubre', 11: 'noviembre', 12: 'diciembre',
+}
+
+export default function FeaturedBanner({ monthlyTrends, sinceActivation }) {
+  // Mode 1: campaign activation tracking (preferred when configured)
+  if (sinceActivation && sinceActivation.total > 0) {
+    const { total, days, activationDay, activationMonth } = sinceActivation
+    const monthName = MONTH_NUM_ES[activationMonth] || ''
+    const perDay = (total / days).toFixed(1)
+    return (
+      <Banner
+        big={total}
+        title={`${total} respuestas positivas desde el ${activationDay} de ${monthName}`}
+        body={
+          <>Las campañas se activaron el <strong style={{ color: C.accent }}>{activationDay} de {monthName}</strong>.
+          {' '}Acumuladas en <strong style={{ color: C.text }}>{days} {days === 1 ? 'día' : 'días'}</strong> de actividad —
+          {' '}promedio de <strong style={{ color: C.text }}>{perDay} respuestas/día</strong>.</>
+        }
+      />
+    )
+  }
+
+  // Mode 2: latest month with partial-month context
   if (!monthlyTrends || monthlyTrends.length === 0) return null
   const latest = monthlyTrends[monthlyTrends.length - 1]
   if (!latest || !latest.leads) return null
 
   const monthName = MONTH_ES[latest.month] || latest.month.toLowerCase()
   const isPartial = latest.firstDay && latest.firstDay > 1
-  const sinceText = isPartial ? `desde el ${latest.firstDay} de ${monthName}` : `en ${monthName}`
-
   const days = isPartial && latest.activeDays ? latest.activeDays : (latest.days || 30)
   const perDay = (latest.leads / days).toFixed(1)
+  const sinceText = isPartial ? `desde el ${latest.firstDay} de ${monthName}` : `en ${monthName}`
 
+  return (
+    <Banner
+      big={latest.leads}
+      title={`${latest.leads} respuestas positivas ${sinceText}`}
+      body={
+        isPartial ? (
+          <>Las campañas se activaron el <strong style={{ color: C.accent }}>{latest.firstDay} de {monthName}</strong>.
+          {' '}Acumuladas en <strong style={{ color: C.text }}>{days} {days === 1 ? 'día' : 'días'}</strong>
+          {' '}({latest.firstDay}–{latest.lastDay} de {monthName}) — promedio de
+          {' '}<strong style={{ color: C.text }}>{perDay} respuestas/día</strong>.</>
+        ) : (
+          <>A lo largo del mes — promedio de <strong style={{ color: C.text }}>{perDay} respuestas/día</strong>.</>
+        )
+      }
+    />
+  )
+}
+
+function Banner({ big, title, body }) {
   return (
     <section style={{
       background: C.surface,
@@ -48,7 +89,7 @@ export default function FeaturedBanner({ monthlyTrends }) {
           color: C.accent, lineHeight: 1, letterSpacing: '-2px',
           fontVariantNumeric: 'tabular-nums',
         }}>
-          {latest.leads}
+          {big}
         </div>
       </div>
 
@@ -65,18 +106,10 @@ export default function FeaturedBanner({ monthlyTrends }) {
           fontFamily: FONT_DISPLAY, fontSize: '24px', fontWeight: 700,
           color: C.text, margin: '0 0 6px', letterSpacing: '-0.4px',
         }}>
-          {latest.leads} respuestas positivas {sinceText}
+          {title}
         </h2>
-        <p style={{
-          fontSize: '14px', color: C.muted, margin: 0, lineHeight: 1.6,
-        }}>
-          {isPartial ? (
-            <>Acumuladas en <strong style={{ color: C.text }}>{days} {days === 1 ? 'día' : 'días'}</strong> de campaña activa
-            {' '}({latest.firstDay}–{latest.lastDay} de {monthName}) — promedio de
-            {' '}<strong style={{ color: C.text }}>{perDay} respuestas/día</strong>.</>
-          ) : (
-            <>A lo largo del mes — promedio de <strong style={{ color: C.text }}>{perDay} respuestas/día</strong>.</>
-          )}
+        <p style={{ fontSize: '14px', color: C.muted, margin: 0, lineHeight: 1.6 }}>
+          {body}
         </p>
       </div>
     </section>

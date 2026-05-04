@@ -6,7 +6,7 @@ import { fetchCampaignAnalytics, fetchCampaigns } from '../lib/instantly'
 import ActiveCampaigns from './ActiveCampaigns'
 import FeaturedBanner from './FeaturedBanner'
 import { CAIN_CLIENT_ID, CAIN_CAMPAIGNS } from '../data/cainCampaigns'
-import { applyMonthOverride } from '../data/monthOverrides'
+import { applyMonthOverride, computeSinceActivation } from '../data/monthOverrides'
 
 // ── Color Tokens ───────────────────────────────────────
 const C = {
@@ -876,6 +876,7 @@ export default function Dashboard({ isAdmin, clientRecord, onLogout }) {
         // Apply per-client manual month overrides (e.g. Brian: April since 28)
         if (client?.id && merged.monthlyTrends) {
           merged.monthlyTrends = applyMonthOverride(merged.monthlyTrends, client.id)
+          merged.sinceActivation = computeSinceActivation(merged.monthlyTrends, client.id)
         }
 
         setData(merged)
@@ -994,7 +995,7 @@ export default function Dashboard({ isAdmin, clientRecord, onLogout }) {
         {data && !loadingSheet && (
           <>
             {/* FEATURED BANNER: Latest month positive responses */}
-            <FeaturedBanner monthlyTrends={data.monthlyTrends} />
+            <FeaturedBanner monthlyTrends={data.monthlyTrends} sinceActivation={data.sinceActivation} />
 
             {/* SECTION 1: Executive Summary (60%) + KPIs (40%) */}
             <div style={S.grid6040}>

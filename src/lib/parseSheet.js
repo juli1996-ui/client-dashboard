@@ -267,7 +267,7 @@ function calculateMetrics(rows) {
   const currentMonthMeetings = meetingsByYM[currentYM] || 0
   const currentMonthLabel = NUM_TO_LABEL[currentMonth]
 
-  // Find the last activity date in the current month to detect campaign pauses
+  // Find the first/last activity dates in the current month to detect actual campaign window
   const currentMonthDates = rows
     .filter(r => r._ym === currentYM)
     .map(r => {
@@ -275,11 +275,16 @@ function calculateMetrics(rows) {
       return d ? parseInt(d.day, 10) : 0
     })
     .filter(d => d > 0)
+  const firstActiveDay = currentMonthDates.length > 0 ? Math.min(...currentMonthDates) : 0
   const lastActiveDay = currentMonthDates.length > 0 ? Math.max(...currentMonthDates) : 0
 
-  // If last activity was more than 7 days ago, campaign likely paused/ended — use active days for rate
+  // If last activity was more than 7 days ago, campaign likely paused/ended
   const campaignPaused = lastActiveDay > 0 && (currentDayOfMonth - lastActiveDay) > 7
-  const activeDays = campaignPaused ? lastActiveDay : currentDayOfMonth
+
+  // Active days = days between first activity and last activity (or today if still active)
+  // This handles campaigns that start mid-month (e.g., April 28 launch)
+  const lastDay = campaignPaused ? lastActiveDay : currentDayOfMonth
+  const activeDays = firstActiveDay > 0 ? (lastDay - firstActiveDay + 1) : currentDayOfMonth
 
   // Elapsed days = active campaign days; days left in current month
   const elapsedDays = currentDayOfMonth
@@ -461,6 +466,7 @@ function calculateMetrics(rows) {
       elapsedDays,
       activeDays,
       campaignPaused,
+      firstActiveDay,
       lastActiveDay,
       daysInMonth: daysInCurrentMonth,
       dailyRate,

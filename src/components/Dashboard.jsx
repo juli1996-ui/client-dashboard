@@ -85,13 +85,18 @@ function ExecutiveSummary({ data, projections, monthlyTrends, growth }) {
     growthPct = Math.round(((latestMonthLeads - prevMonthLeads) / prevMonthLeads) * 100)
   }
 
+  // If campaign started mid-month, build a "since Apr 28" suffix
+  const firstActive = projections?.firstActiveDay
+  const partialMonthSuffix = firstActive && firstActive > 1
+    ? ` (since ${projections.currentMonthLabel} ${firstActive})` : ''
+
   return (
     <div style={S.card}>
       <div style={S.sectionLabel}>Executive Summary</div>
       <p style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', lineHeight: 1.7, color: C.text, margin: 0 }}>
         {latestMonthLeads > 0 ? (
           <>
-            {latestMonth} was {growthPct != null && growthPct > 50 ? 'a breakout month' : 'a solid month'}. Your campaign generated{' '}
+            {latestMonth}{partialMonthSuffix} was {growthPct != null && growthPct > 50 ? 'a breakout month' : 'a solid month'}. Your campaign generated{' '}
             <span style={{ fontFamily: FONT_DISPLAY, fontWeight: 900, fontSize: '42px', color: C.accent, lineHeight: 1, verticalAlign: 'baseline' }}>
               {latestMonthLeads}
             </span>{' '}
@@ -130,10 +135,16 @@ function KPIStack({ data, projections, monthlyTrends }) {
   const latestLeads = latestMonth?.leads || 0
   const latestMeetings = latestMonth?.meetings || 0
   const latestDays = latestMonth?.days || 30
-  const latestLeadsPerDay = latestLeads > 0 ? (latestLeads / latestDays).toFixed(2) : '—'
+
+  // If this is the live current month with a partial start (e.g. April 28), use active days
+  const isCurrentLive = projections?.currentMonthLabel && latestMonth?.month === projections.currentMonthLabel
+  const firstActive = projections?.firstActiveDay
+  const activeDaysCount = (isCurrentLive && projections?.activeDays) ? projections.activeDays : latestDays
+  const latestLeadsPerDay = latestLeads > 0 ? (latestLeads / activeDaysCount).toFixed(2) : '—'
+  const partialSuffix = (isCurrentLive && firstActive > 1) ? ` (since ${firstActive})` : ''
 
   const prevLeadsPerDay = prevMonth ? (prevMonth.leads / (prevMonth.days || 30)) : null
-  const currentLPD = latestLeads / latestDays
+  const currentLPD = latestLeads / activeDaysCount
   const lpdDiff = prevLeadsPerDay ? (currentLPD - prevLeadsPerDay).toFixed(1) : null
 
   const prevMeetings = prevMonth?.meetings || 0
@@ -144,7 +155,7 @@ function KPIStack({ data, projections, monthlyTrends }) {
 
   const kpis = [
     {
-      label: `${latestMonth?.month || 'Month'} Leads`,
+      label: `${latestMonth?.month || 'Month'}${partialSuffix} Leads`,
       value: latestLeads.toLocaleString(),
       trend: growthPct != null && growthPct > 0 ? `+${growthPct}%` : growthPct != null ? `${growthPct}%` : null,
       trendUp: growthPct != null && growthPct > 0,

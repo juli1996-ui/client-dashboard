@@ -5,38 +5,51 @@ const C = {
 }
 const FONT_DISPLAY = "'Fraunces', Georgia, serif"
 
-const MONTH_ES = {
-  'Enero': 'enero', 'Febrero': 'febrero', 'Marzo': 'marzo',
-  'Abril': 'abril', 'Mayo': 'mayo', 'Junio': 'junio',
-  'Julio': 'julio', 'Agosto': 'agosto', 'Septiembre': 'septiembre',
-  'Octubre': 'octubre', 'Noviembre': 'noviembre', 'Diciembre': 'diciembre',
-  'January': 'enero', 'February': 'febrero', 'March': 'marzo',
-  'April': 'abril', 'May': 'mayo', 'June': 'junio',
-  'July': 'julio', 'August': 'agosto', 'September': 'septiembre',
-  'October': 'octubre', 'November': 'noviembre', 'December': 'diciembre',
+// Map any sheet month spelling (Spanish or English) → English display name
+const MONTH_EN = {
+  'Enero': 'January', 'Febrero': 'February', 'Marzo': 'March',
+  'Abril': 'April', 'Mayo': 'May', 'Junio': 'June',
+  'Julio': 'July', 'Agosto': 'August', 'Septiembre': 'September',
+  'Octubre': 'October', 'Noviembre': 'November', 'Diciembre': 'December',
+  'January': 'January', 'February': 'February', 'March': 'March',
+  'April': 'April', 'May': 'May', 'June': 'June',
+  'July': 'July', 'August': 'August', 'September': 'September',
+  'October': 'October', 'November': 'November', 'December': 'December',
+  'Jan': 'January', 'Feb': 'February', 'Mar': 'March', 'Apr': 'April',
+  'Jun': 'June', 'Jul': 'July', 'Aug': 'August', 'Sep': 'September',
+  'Oct': 'October', 'Nov': 'November', 'Dec': 'December',
 }
 
-const MONTH_NUM_ES = {
-  1: 'enero', 2: 'febrero', 3: 'marzo', 4: 'abril', 5: 'mayo', 6: 'junio',
-  7: 'julio', 8: 'agosto', 9: 'septiembre', 10: 'octubre', 11: 'noviembre', 12: 'diciembre',
+const MONTH_NUM_EN = {
+  1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'June',
+  7: 'July', 8: 'August', 9: 'September', 10: 'October', 11: 'November', 12: 'December',
+}
+
+function ordinal(n) {
+  if (n >= 11 && n <= 13) return `${n}th`
+  const s = ['th', 'st', 'nd', 'rd']
+  const v = n % 10
+  return `${n}${s[v] || 'th'}`
 }
 
 export default function FeaturedBanner({ monthlyTrends, sinceActivation }) {
   // Mode 1: campaign activation tracking (preferred when configured)
   if (sinceActivation && sinceActivation.total > 0) {
     const { total, days, firstDay, lastDay, activationDay, activationMonth } = sinceActivation
-    const monthName = MONTH_NUM_ES[activationMonth] || ''
+    const monthName = MONTH_NUM_EN[activationMonth] || ''
     const perDay = (total / days).toFixed(1)
-    const range = (lastDay && lastDay !== firstDay) ? `${firstDay}–${lastDay}` : `${firstDay}`
+    const range = (lastDay && lastDay !== firstDay)
+      ? `${monthName} ${firstDay}–${lastDay}`
+      : `${monthName} ${firstDay}`
     return (
       <Banner
         big={total}
-        title={`${total} respuestas positivas en ${monthName} desde el ${activationDay} de ${monthName}`}
+        title={`${total} positive responses in ${monthName} since ${monthName} ${ordinal(activationDay)}`}
         body={
-          <>Las campañas se activaron el <strong style={{ color: C.accent }}>{activationDay} de {monthName}</strong>.
-          {' '}Acumuladas en <strong style={{ color: C.text }}>{days} {days === 1 ? 'día' : 'días'}</strong>
-          {' '}({range} de {monthName}) — promedio de
-          {' '}<strong style={{ color: C.text }}>{perDay} respuestas/día</strong>.</>
+          <>Campaigns went live on <strong style={{ color: C.accent }}>{monthName} {ordinal(activationDay)}</strong>.
+          {' '}Accumulated in <strong style={{ color: C.text }}>{days} {days === 1 ? 'day' : 'days'}</strong>
+          {' '}({range}) — averaging
+          {' '}<strong style={{ color: C.text }}>{perDay} responses/day</strong>.</>
         }
       />
     )
@@ -47,24 +60,26 @@ export default function FeaturedBanner({ monthlyTrends, sinceActivation }) {
   const latest = monthlyTrends[monthlyTrends.length - 1]
   if (!latest || !latest.leads) return null
 
-  const monthName = MONTH_ES[latest.month] || latest.month.toLowerCase()
+  const monthName = MONTH_EN[latest.month] || latest.month
   const isPartial = latest.firstDay && latest.firstDay > 1
   const days = isPartial && latest.activeDays ? latest.activeDays : (latest.days || 30)
   const perDay = (latest.leads / days).toFixed(1)
-  const sinceText = isPartial ? `desde el ${latest.firstDay} de ${monthName}` : `en ${monthName}`
+  const sinceText = isPartial
+    ? `since ${monthName} ${ordinal(latest.firstDay)}`
+    : `in ${monthName}`
 
   return (
     <Banner
       big={latest.leads}
-      title={`${latest.leads} respuestas positivas ${sinceText}`}
+      title={`${latest.leads} positive responses ${sinceText}`}
       body={
         isPartial ? (
-          <>Las campañas se activaron el <strong style={{ color: C.accent }}>{latest.firstDay} de {monthName}</strong>.
-          {' '}Acumuladas en <strong style={{ color: C.text }}>{days} {days === 1 ? 'día' : 'días'}</strong>
-          {' '}({latest.firstDay}–{latest.lastDay} de {monthName}) — promedio de
-          {' '}<strong style={{ color: C.text }}>{perDay} respuestas/día</strong>.</>
+          <>Campaigns went live on <strong style={{ color: C.accent }}>{monthName} {ordinal(latest.firstDay)}</strong>.
+          {' '}Accumulated in <strong style={{ color: C.text }}>{days} {days === 1 ? 'day' : 'days'}</strong>
+          {' '}({monthName} {latest.firstDay}–{latest.lastDay}) — averaging
+          {' '}<strong style={{ color: C.text }}>{perDay} responses/day</strong>.</>
         ) : (
-          <>A lo largo del mes — promedio de <strong style={{ color: C.text }}>{perDay} respuestas/día</strong>.</>
+          <>Across the month — averaging <strong style={{ color: C.text }}>{perDay} responses/day</strong>.</>
         )
       }
     />
@@ -102,7 +117,7 @@ function Banner({ big, title, body }) {
           textTransform: 'uppercase', letterSpacing: '2px',
           color: C.faint, margin: '0 0 8px',
         }}>
-          Respuestas positivas
+          Positive responses
         </p>
         <h2 style={{
           fontFamily: FONT_DISPLAY, fontSize: '24px', fontWeight: 700,

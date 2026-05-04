@@ -5,6 +5,7 @@ import { fetchSheetData } from '../lib/parseSheet'
 import { fetchCampaignAnalytics, fetchCampaigns } from '../lib/instantly'
 import ActiveCampaigns from './ActiveCampaigns'
 import { CAIN_CLIENT_ID, CAIN_CAMPAIGNS } from '../data/cainCampaigns'
+import { applyMonthOverride } from '../data/monthOverrides'
 
 // ── Color Tokens ───────────────────────────────────────
 const C = {
@@ -869,6 +870,11 @@ export default function Dashboard({ isAdmin, clientRecord, onLogout }) {
 
         if (campaigns && campaigns.length > 0) {
           merged.campaigns = campaigns
+        }
+
+        // Apply per-client manual month overrides (e.g. Brian: April since 28)
+        if (client?.id && merged.monthlyTrends) {
+          merged.monthlyTrends = applyMonthOverride(merged.monthlyTrends, client.id)
         }
 
         setData(merged)

@@ -311,25 +311,41 @@ function MonthlyBarChart({ monthlyTrends }) {
 function ResponseBreakdown({ replyTypes }) {
   if (!replyTypes || replyTypes.length === 0) return null
   const total = replyTypes.reduce((s, t) => s + t.value, 0)
+  const maxVal = Math.max(...replyTypes.map(t => t.value), 1)
 
   return (
     <div style={S.card}>
       <div style={S.sectionLabel}>Response Breakdown</div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {replyTypes.map(t => {
           const pct = total > 0 ? ((t.value / total) * 100).toFixed(1) : '0'
+          const barPct = (t.value / maxVal) * 100
           return (
-            <div key={t.name} style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '7px 0', borderBottom: `1px solid ${C.border}`,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: t.color, flexShrink: 0 }} />
-                <span style={{ fontSize: '13px', fontWeight: 500 }}>{t.name}</span>
+            <div key={t.name}>
+              <div style={{
+                display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+                marginBottom: '4px', gap: '12px',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: t.color, flexShrink: 0 }} />
+                  <span style={{
+                    fontSize: '13px', fontWeight: 500, color: C.text,
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>{t.name}</span>
+                </div>
+                <div style={{ flexShrink: 0 }}>
+                  <span style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: '14px', color: C.text }}>{t.value}</span>
+                  <span style={{ fontSize: '11px', color: C.muted, marginLeft: '6px' }}>{pct}%</span>
+                </div>
               </div>
-              <div>
-                <span style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: '14px' }}>{t.value}</span>
-                <span style={{ fontSize: '11px', color: C.muted, marginLeft: '6px' }}>{pct}%</span>
+              <div style={{
+                width: '100%', height: '6px', background: C.bg,
+                borderRadius: '3px', overflow: 'hidden',
+              }}>
+                <div style={{
+                  height: '100%', width: `${barPct}%`, background: t.color,
+                  borderRadius: '3px', transition: 'width 0.3s',
+                }} />
               </div>
             </div>
           )
@@ -1017,7 +1033,7 @@ export default function Dashboard({ isAdmin, clientRecord, onLogout }) {
             {data.monthlyTrends.length > 0 && (
               <div style={S.grid2}>
                 <MonthlyBarChart monthlyTrends={data.monthlyTrends} />
-                <ResponseBreakdown replyTypes={data.replyTypes} />
+                <ResponseBreakdown replyTypes={data.rawReplyTypes?.length ? data.rawReplyTypes : data.replyTypes} />
               </div>
             )}
 

@@ -35,18 +35,24 @@ function ordinal(n) {
 export default function FeaturedBanner({ monthlyTrends, sinceActivation }) {
   // Mode 1: campaign activation tracking (preferred when configured)
   if (sinceActivation && sinceActivation.total > 0) {
-    const { total, days, firstDay, lastDay, activationDay, activationMonth } = sinceActivation
-    const monthName = MONTH_NUM_EN[activationMonth] || ''
+    const { total, days, firstDay, lastDay, activationDay, activationMonth, lastMonth, isCrossMonth } = sinceActivation
+    const activationMonthName = MONTH_NUM_EN[activationMonth] || ''
+    const lastMonthName = MONTH_NUM_EN[lastMonth] || activationMonthName
     const perDay = (total / days).toFixed(1)
-    const range = (lastDay && lastDay !== firstDay)
-      ? `${monthName} ${firstDay}–${lastDay}`
-      : `${monthName} ${firstDay}`
+    const range = isCrossMonth
+      ? `${activationMonthName} ${firstDay} – ${lastMonthName} ${lastDay}`
+      : (lastDay && lastDay !== firstDay
+          ? `${activationMonthName} ${firstDay}–${lastDay}`
+          : `${activationMonthName} ${firstDay}`)
+    const title = isCrossMonth
+      ? `${total} positive responses since ${activationMonthName} ${ordinal(activationDay)}`
+      : `${total} positive responses in ${activationMonthName} since ${activationMonthName} ${ordinal(activationDay)}`
     return (
       <Banner
         big={total}
-        title={`${total} positive responses in ${monthName} since ${monthName} ${ordinal(activationDay)}`}
+        title={title}
         body={
-          <>Campaigns went live on <strong style={{ color: C.accent }}>{monthName} {ordinal(activationDay)}</strong>.
+          <>Campaigns went live on <strong style={{ color: C.accent }}>{activationMonthName} {ordinal(activationDay)}</strong>.
           {' '}Accumulated in <strong style={{ color: C.text }}>{days} {days === 1 ? 'day' : 'days'}</strong>
           {' '}({range}) — averaging
           {' '}<strong style={{ color: C.text }}>{perDay} responses/day</strong>.</>

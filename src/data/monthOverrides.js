@@ -39,9 +39,10 @@ export function applyMonthOverride(monthlyTrends, clientId) {
   })
 }
 
-// Return the activation-month info for the banner: count of leads in the
-// activation month only (NOT cumulative across months) plus the partial-month
-// active-day window.
+// Return cumulative response info since the activation date, spanning all
+// months from activation onward. Total = sum of leads from activationYM to
+// the latest month. Date range = activation day → last activity day in the
+// most recent month with data.
 export function computeSinceActivation(monthlyTrends, clientId) {
   const activation = CAMPAIGN_ACTIVATIONS[clientId]
   if (!activation || !monthlyTrends || monthlyTrends.length === 0) return null
@@ -49,22 +50,34 @@ export function computeSinceActivation(monthlyTrends, clientId) {
   const [aYear, aMonth, aDay] = activation.split('-').map(Number)
   const activationYM = `${aYear}-${String(aMonth).padStart(2, '0')}`
 
-  const activationMonthEntry = monthlyTrends.find(m => m.ym === activationYM)
-  if (!activationMonthEntry || !activationMonthEntry.leads) return null
+  const fromActivation = monthlyTrends.filter(m => m.ym >= activationYM)
+  if (fromActivation.length === 0) return null
 
-  const total = activationMonthEntry.leads
-  const firstDay = activationMonthEntry.firstDay || aDay
-  const lastDay = activationMonthEntry.lastDay || activationMonthEntry.days
-  const days = (firstDay && lastDay) ? (lastDay - firstDay + 1) : (activationMonthEntry.activeDays || 1)
+  const total = fromActivation.reduce((s, m) => s + (m.leads || 0), 0)
+  if (total === 0) return null
+
+  const latest = fromActivation[fromActivation.length - 1]
+  const [lYear, lMonth] = latest.ym.split('-').map(Number)
+  const lastDay = latest.lastDay || latest.days
+
+  const activationDate = new Date(aYear, aMonth - 1, aDay)
+  const lastDate = new Date(lYear, lMonth - 1, lastDay)
+  const days = Math.max(
+    1,
+    Math.round((lastDate - activationDate) / (1000 * 60 * 60 * 24)) + 1
+  )
 
   return {
     total,
     days,
-    firstDay,
+    firstDay: aDay,
     lastDay,
     activationYM,
     activationMonth: aMonth,
     activationDay: aDay,
     activationYear: aYear,
+    lastMonth: lMonth,
+    lastMonthYM: latest.ym,
+    isCrossMonth: latest.ym !== activationYM,
   }
 }

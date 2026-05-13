@@ -398,12 +398,32 @@ function calculateMetrics(rows) {
     return { ...m, cumulative }
   })
 
-  // ── Detailed response type breakdown (raw types, not normalized) ──
-  const rawTypeCounts = {}
+  // ── Detailed response type breakdown (raw types from the sheet) ──
+  // Group case-insensitively so "Interested" and "interested" merge.
+  // Display label = first-seen casing, trimmed.
+  const rawGroups = {}
   rows.forEach(r => {
-    const raw = r._rawType || 'Other'
-    rawTypeCounts[raw] = (rawTypeCounts[raw] || 0) + 1
+    const raw = (r._rawType || 'Other').trim()
+    const key = raw.toLowerCase()
+    if (!rawGroups[key]) rawGroups[key] = { label: raw || 'Other', count: 0 }
+    rawGroups[key].count += 1
   })
+
+  // Sort by count desc, take top 8, lump tail into "Other"
+  const RAW_PALETTE = ['#C2653C', '#4A7C59', '#B8860B', '#7A6B5A', '#6B7B8B', '#A35E60', '#8B7355', '#5C7569']
+  const sortedRawEntries = Object.values(rawGroups).sort((a, b) => b.count - a.count)
+  const topRaw = sortedRawEntries.slice(0, 8)
+  const tailRaw = sortedRawEntries.slice(8)
+  const tailSum = tailRaw.reduce((s, x) => s + x.count, 0)
+
+  const rawReplyTypes = topRaw.map((e, i) => ({
+    name: e.label,
+    value: e.count,
+    color: RAW_PALETTE[i % RAW_PALETTE.length],
+  }))
+  if (tailSum > 0) {
+    rawReplyTypes.push({ name: `Other (${tailRaw.length} types)`, value: tailSum, color: '#8A8580' })
+  }
 
   // ── Campaign Highlights ──────────────────────────────────
 
@@ -460,6 +480,7 @@ function calculateMetrics(rows) {
       { name: 'Forwarded Internally', value: typeCounts['Forwarded Internally'], color: '#B8860B' },
       { name: 'Other', value: typeCounts['Other'], color: '#8A8580' },
     ].filter(t => t.value > 0),
+    rawReplyTypes,
     monthlyTrends: monthlyTrendsWithCumulative,
     growth: {
       firstMonthLeads,
